@@ -14,8 +14,6 @@ CODE128
 
 Codabar（NW-7）
 
-QRCode
-
 動作環境
 -------
 .NET Framework 3.5 以上（Visual Studio 2010 プロジェクト）
