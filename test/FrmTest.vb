@@ -59,7 +59,14 @@ Public Class FrmTest
                     b.Render(g, 300, 800, 150, 50, "D98-$:/.+21D")
                 End With
                 e.HasMorePages = True
-                page += 1
+                With Nothing
+                    Dim b As New CITF
+                    b.Render(g, 500, 500, 200, 50, "12345678901231")
+                    b.Render(g, 500, 600, 200, 50, "14901234567891")
+                    b.Render(g, 500, 700, 200, 50, "104901234567893")
+                    b.WithText = False
+                    b.Render(g, 500, 800, 200, 50, "12345678901231")
+                End With
             Case 2
                 With Nothing
                     Dim b As New CYubinCustomer
@@ -69,9 +76,14 @@ Public Class FrmTest
                     b.Render(g, 20, 350, 450, 50, 11.5F, 100, "024007315-10-3")
                 End With
                 e.HasMorePages = False
-                page = 1
             Case Else
         End Select
+
+        If e.HasMorePages Then
+            page += 1
+        Else
+            page = 1
+        End If
     End Sub
 
 End Class
