@@ -58,7 +58,6 @@ Public Class FrmTest
                     b.WithText = False
                     b.Render(g, 300, 800, 150, 50, "D98-$:/.+21D")
                 End With
-                e.HasMorePages = True
                 With Nothing
                     Dim b As New CITF
                     b.Render(g, 500, 500, 200, 50, "12345678901231")
@@ -67,13 +66,15 @@ Public Class FrmTest
                     b.WithText = False
                     b.Render(g, 500, 800, 200, 50, "12345678901231")
                 End With
+                e.HasMorePages = True
             Case 2
                 With Nothing
                     Dim b As New CYubinCustomer
-                    b.Render(g, 20, 50, 300, 50, 8.0F, 100, "1234567890-")
-                    b.Render(g, 20, 150, 350, 50, 9.0F, 100, "ABCDEFGHIJKLMNOPQRST")
-                    b.Render(g, 20, 250, 400, 50, 10.0F, 100, "UVWXYZ")
-                    b.Render(g, 20, 350, 450, 50, 11.5F, 100, "024007315-10-3")
+                    Const dpi = 100
+                    b.Render(g, 20, 50, 300, 50, 8.0F, dpi, "1234567890-")
+                    b.Render(g, 20, 150, 350, 50, 9.0F, dpi, "ABCDEFGHIJKLMNOPQRST")
+                    b.Render(g, 20, 250, 400, 50, 10.0F, dpi, "UVWXYZ")
+                    b.Render(g, 20, 350, 450, 50, 11.5F, dpi, "024007315-10-3")
                 End With
                 e.HasMorePages = False
             Case Else

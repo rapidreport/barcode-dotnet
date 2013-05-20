@@ -1,4 +1,6 @@
-﻿Public Class CYubinCustomer
+﻿Imports jp.co.systembase.barcode.CBarcode.BarContent
+
+Public Class CYubinCustomer
     Inherits CBarcode
 
     Private Shared CODE_CHARS() As String = _
@@ -73,7 +75,7 @@
     Shared Sub New()
         For i As Integer = 0 To CODE_CHARS.Length - 1
             CHECK_DIGIT_PATTERNS.Add(CODE_CHARS(i), i)
-        Next i
+        Next
     End Sub
 
     Public Function Encode(ByVal data As String) As List(Of String)
@@ -94,7 +96,7 @@
 
         For i As Integer = codes.Count To CODE_MAX_SIZE
             codes.Add(CODE_CHARS(14)) ' CC4
-        Next i
+        Next
 
         Dim ret = codes.GetRange(0, CODE_MAX_SIZE)
         ret.Add(calcCheckDigit(ret))
@@ -127,30 +129,29 @@
         Return CODE_CHARS(pos)
     End Function
 
-    Public Sub Render(ByVal g As Graphics, _
-                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                      ByVal point As Single, ByVal data As String)
-        Render(g, x, y, w, h, point, DPI, data)
-    End Sub
+    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                             ByVal point As Single, ByVal data As String)
+        Return CreateContent(x, y, w, h, point, DPI, data)
+    End Function
 
-    Public Sub Render(ByVal g As Graphics, _
-                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                      ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
-        Render(g, New RectangleF(x, y, w, h), point, dpi, data)
-    End Sub
+    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                             ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
+        Return CreateContent(New RectangleF(x, y, w, h), point, dpi, data)
+    End Function
 
-    Public Sub Render(ByVal g As Graphics, _
-                      ByVal r As RectangleF, ByVal point As Single, _
-                      ByVal data As String)
-        Render(g, r, point, DPI, Data)
-    End Sub
+    Public Function CreateContent(ByVal r As RectangleF, ByVal point As Single, _
+                             ByVal data As String)
+        Return CreateContent(r, point, DPI, data)
+    End Function
 
-    Public Sub Render(ByVal g As Graphics, _
-                      ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
-                      ByVal data As String)
+    Public Function CreateContent(ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
+                                  ByVal data As String) As BarContent
         If point < 8.0F OrElse 11.5F < point Then
             Throw New ArgumentException("illegal data: " & data)
         End If
+
+        Dim marginX As Single = pointToPixel(dpi, Me.MarginX)
+        Dim marginY As Single = pointToPixel(dpi, Me.MarginY)
 
         Dim longBarHeight As Single = mmToPixel(dpi, 3.6F * point / 10.0F)
         Dim timingBarHeight As Single = mmToPixel(dpi, 1.2F * point / 10.0F)
@@ -158,11 +159,12 @@
         Dim barWidth As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
         Dim barSpace As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
 
-        Dim xPos As Single = r.X + MarginX * 2
-        Dim yTop As Single = r.Y + MarginY * 2
-        Dim xMax As Single = r.X + r.Width - MarginX * 2
-        Dim yMax As Single = r.Y + r.Height - MarginY * 2
+        Dim xPos As Single = r.X
+        Dim yTop As Single = r.Y
+        Dim xMax As Single = r.X + pointToPixel(dpi, r.Width) - marginX * 2
+        Dim yMax As Single = r.Y + pointToPixel(dpi, r.Height) - marginY * 2
 
+        Dim ret As New BarContent
         For Each code As String In Encode(data)
             For Each c As Char In code
                 Dim yPos As Single = yTop
@@ -182,8 +184,8 @@
                         Throw New ArgumentException("illegal switch case: " & c)
                 End Select
 
-                Dim x As Single = xPos + MarginX
-                Dim y As Single = yPos + MarginY
+                Dim x As Single = xPos + marginX
+                Dim y As Single = yPos + marginY
                 If x > xMax Or y > yMax Then
                     Exit For
                 End If
@@ -192,14 +194,45 @@
                     barHeight = yMax - y
                 End If
 
-                g.FillRectangle(Brushes.Black, New RectangleF(x, y, barWidth, barHeight))
+                Dim b As BarContent.Bar = New BarContent.Bar(x, y, barWidth, barHeight)
+                ret.Add(b)
+
                 xPos = xPos + barWidth + barSpace
             Next
         Next
+
+        Return ret
+    End Function
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal point As Single, ByVal data As String)
+        Render(g, x, y, w, h, point, DPI, data)
     End Sub
 
-    Private Function mmToPixel(ByVal dpi As Integer, ByVal mm As Single) As Single
-        Return dpi * (mm / 25.4F)
-    End Function
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
+        Render(g, New RectangleF(x, y, w, h), point, dpi, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, ByVal point As Single, _
+                      ByVal data As String)
+        Render(g, r, point, DPI, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
+                      ByVal data As String)
+        Dim c As BarContent = CreateContent(r, point, dpi, data)
+        If c Is Nothing Then
+            Exit Sub
+        End If
+
+        For Each b As Bar In c.GetBars
+            g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
+        Next
+    End Sub
 
 End Class

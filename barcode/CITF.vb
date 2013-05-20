@@ -1,4 +1,6 @@
-﻿Public Class CITF
+﻿Imports jp.co.systembase.barcode.CBarcode.BarContent
+
+Public Class CITF
     Inherits CBarcode
 
     Private Shared CODE_PATTERNS As New Dictionary(Of Char, Integer()) From _
@@ -67,6 +69,90 @@
         Return _data
     End Function
 
+    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal data As String) As BarContent
+        Return CreateContent(x, y, w, h, DPI, Data)
+    End Function
+
+    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal dpi As Integer, ByVal data As String) As BarContent
+        Return CreateContent(New RectangleF(x, y, w, h), DPI, data)
+    End Function
+
+    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As BarContent
+        Return CreateContent(r, DPI, data)
+    End Function
+
+    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As BarContent
+        Dim marginX As Single = pointToPixel(dpi, Me.MarginX)
+        Dim marginY As Single = pointToPixel(dpi, Me.MarginY)
+
+        Dim shortBarWidth As Single = mmToPixel(dpi, 1.016F)
+        Dim longBarWidth = mmToPixel(dpi, 1.016F * 2.5F)
+
+        Dim width = marginX
+        Dim codes As List(Of Integer()) = Encode(data)
+        For Each code As Integer() In codes
+            For Each c As Integer In code
+                If c = 0 Then
+                    width += shortBarWidth
+                Else
+                    width += longBarWidth
+                End If
+            Next
+        Next
+
+        Dim h As Single = pointToPixel(dpi, r.Height) - marginY * 2
+        Dim barHeight As Single = h
+        If WithText Then
+            barHeight *= 0.7F
+        End If
+        Dim height = barHeight + marginY
+
+
+        Dim w As Single = pointToPixel(dpi, r.Width) - marginX * 2
+        If w <= 0 Or h <= 0 Then
+            Return Nothing
+        End If
+
+        Dim ret As New BarContent
+        Dim xPos As Single = 0.0F
+        Dim scale As Single = w / width
+        For Each code As Integer() In codes
+            For i As Integer = 0 To code.Length - 1
+                Dim c As Integer = code(i)
+                Dim barWidth As Single = 0.0F
+                If c = 0 Then
+                    barWidth = shortBarWidth
+                Else
+                    barWidth = longBarWidth
+                End If
+                barWidth *= scale
+                If i Mod 2 = 0 Then
+                    Dim b As New BarContent.Bar(r.X + xPos + marginX, r.Y + marginY, barWidth, barHeight)
+                    ret.Add(b)
+                End If
+                xPos += barWidth
+            Next
+        Next
+
+        If WithText Then
+            Dim _data As String = _Encode(data)
+
+            Dim textHeight As Single = h * 0.2F
+            Dim textWidth As Single = ((w * 0.9F) / _data.Length) * 2.0F
+            Dim fs As Single = Math.Max(Math.Min(textHeight, textWidth), 6.0F)
+            Dim f As New Font("Arial", fs)
+
+            Dim format As StringFormat = New StringFormat()
+            format.Alignment = StringAlignment.Center
+            Dim t As New BarContent.Text(_data, f, r.X + w / 2 + marginX, r.Y + height, format)
+            ret.SetText(t)
+        End If
+
+        Return ret
+    End Function
+
     Public Sub Render(ByVal g As Graphics, _
                       ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                       ByVal data As String)
@@ -84,71 +170,20 @@
     End Sub
 
     Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String)
-        Dim shortBarWidth As Single = mmToPixel(dpi, 1.016F)
-        Dim longBarWidth = mmToPixel(dpi, 1.016F * 2.5F)
-
-        Dim width = MarginX
-        Dim codes As List(Of Integer()) = Encode(data)
-        For Each code As Integer() In codes
-            For Each c As Integer In code
-                If c = 0 Then
-                    width += shortBarWidth
-                Else
-                    width += longBarWidth
-                End If
-            Next
-        Next
-
-        Dim h As Single = pointToPixel(dpi, r.Height - MarginY * 2)
-        Dim barHeight As Single = h
-        If WithText Then
-            barHeight *= 0.7F
-        End If
-        Dim height = barHeight + MarginY
-
-        Dim w As Single = pointToPixel(dpi, r.Width - MarginX * 2)
-        If w <= 0 Or h <= 0 Then
+        Dim c As BarContent = CreateContent(r, dpi, data)
+        If c Is Nothing Then
             Exit Sub
         End If
 
-        Dim xPos As Single = 0
-        Dim scale As Single = w / width
-        For Each code As Integer() In codes
-            For i As Integer = 0 To code.Length - 1
-                Dim c As Integer = code(i)
-                Dim barWidth As Single = longBarWidth * scale
-                If c = 0 Then
-                    barWidth = shortBarWidth * scale
-                End If
-                Dim b As System.Drawing.Brush = Brushes.White
-                If i Mod 2 = 0 Then
-                    b = Brushes.Black
-                End If
-                g.FillRectangle(b, New RectangleF(r.X + xPos + MarginX, r.Y + MarginY, barWidth, barHeight))
-                xPos += barWidth
-            Next
+        For Each b As Bar In c.GetBars
+            g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
         Next
 
-        If WithText Then
-            Dim _data As String = _Encode(data)
-
-            Dim textHeight As Single = h * 0.2F
-            Dim textWidth As Single = ((w * 0.9F) / _data.Length) * 2.0F
-            Dim fs As Single = Math.Max(Math.Min(textHeight, textWidth), 6.0F)
-            Dim f As New Font("Arial", fs)
-
-            Dim format As StringFormat = New StringFormat()
-            format.Alignment = StringAlignment.Center
-            g.DrawString(_data, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + height, format)
+        Dim t As Text = c.GetText
+        If Not t Is Nothing Then
+            g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
         End If
     End Sub
 
-    Private Function pointToPixel(ByVal dpi As Integer, ByVal point As Single) As Single
-        Return dpi * (point / 72.0F)
-    End Function
-
-    Private Function mmToPixel(ByVal dpi As Integer, ByVal mm As Single) As Single
-        Return dpi * (mm / 25.4F)
-    End Function
-
 End Class
+
