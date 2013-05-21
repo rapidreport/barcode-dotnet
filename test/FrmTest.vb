@@ -59,7 +59,7 @@ Public Class FrmTest
                     b.Render(g, 300, 800, 150, 50, "D98-$:/.+21D")
                 End With
                 With Nothing
-                    Dim b As New CITF
+                    Dim b As New CItf
                     b.Render(g, 500, 500, 200, 50, "12345678901231")
                     b.Render(g, 500, 600, 200, 50, "14901234567891")
                     b.Render(g, 500, 700, 200, 50, "104901234567893")

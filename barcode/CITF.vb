@@ -1,6 +1,6 @@
 ﻿Imports jp.co.systembase.barcode.CBarcode.BarContent
 
-Public Class CITF
+Public Class CItf
     Inherits CBarcode
 
     Private Shared CODE_PATTERNS As New Dictionary(Of Char, Integer()) From _
@@ -71,12 +71,12 @@ Public Class CITF
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                                   ByVal data As String) As BarContent
-        Return CreateContent(x, y, w, h, DPI, Data)
+        Return CreateContent(x, y, w, h, DPI, data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                                   ByVal dpi As Integer, ByVal data As String) As BarContent
-        Return CreateContent(New RectangleF(x, y, w, h), DPI, data)
+        Return CreateContent(New RectangleF(x, y, w, h), dpi, data)
     End Function
 
     Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As BarContent
