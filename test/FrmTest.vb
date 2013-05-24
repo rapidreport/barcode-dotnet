@@ -76,6 +76,14 @@ Public Class FrmTest
                     b.Render(g, 20, 250, 400, 50, 10.0F, dpi, "UVWXYZ")
                     b.Render(g, 20, 350, 450, 50, 11.5F, dpi, "024007315-10-3")
                 End With
+                With Nothing
+                    Dim b As New CGs1128
+                    b.Render(g, 450, 50, 300, 50, "#{00}123456789012345678")
+                    b.Render(g, 450, 150, 300, 50, "#{11}ABCDEF#{99}!""%&'()*+,-./")
+                    b.Render(g, 450, 250, 300, 50, "#{01}04912345123459#{10}ABC123")
+                    b.WithText = False
+                    b.Render(g, 450, 350, 300, 50, "#{01}04912345123459#{10}ABC123")
+                End With
                 e.HasMorePages = False
             Case Else
         End Select

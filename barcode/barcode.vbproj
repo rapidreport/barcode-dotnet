@@ -78,6 +78,7 @@
     <Compile Include="CEan.vb" />
     <Compile Include="CEan13.vb" />
     <Compile Include="CEan8.vb" />
+    <Compile Include="CGs1128.vb" />
     <Compile Include="CItf.vb" />
     <Compile Include="CYubinCustomer.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
