@@ -1,4 +1,6 @@
-﻿Imports jp.co.systembase.barcode.CBarcode.BarContent
+﻿Imports jp.co.systembase.barcode.content
+Imports jp.co.systembase.barcode.content.CBarContent
+Imports jp.co.systembase.barcode.content.CScale
 
 Public Class CItf
     Inherits CBarcode
@@ -17,8 +19,6 @@ Public Class CItf
 
     Private Shared START_PATTERN As Integer() = {0, 0, 0, 0}
     Private Shared STOP_PATTERN As Integer() = {1, 0, 0}
-
-    Private Const DPI As Integer = 72
 
     Public Function Encode(ByVal data As String) As List(Of Integer())
         If data Is Nothing OrElse data.Length = 0 Then
@@ -55,8 +55,8 @@ Public Class CItf
 
     Private Sub validate(ByVal data As String)
         For Each c As Char In data
-            If CODE_PATTERNS(c) Is Nothing Then
-                Throw New ArgumentException("illegal data: " & data)
+            If Not CODE_PATTERNS.ContainsKey(c) Then
+                Throw New ArgumentException("illegal char: " & c & " of data: " & data)
             End If
         Next
     End Sub
@@ -70,27 +70,24 @@ Public Class CItf
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal data As String) As BarContent
+                                  ByVal data As String) As CBarContent
         Return CreateContent(x, y, w, h, DPI, data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal dpi As Integer, ByVal data As String) As BarContent
+                                  ByVal dpi As Integer, ByVal data As String) As CBarContent
         Return CreateContent(New RectangleF(x, y, w, h), dpi, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As BarContent
+    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As CBarContent
         Return CreateContent(r, DPI, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As BarContent
-        Dim marginX As Single = pointToPixel(dpi, Me.MarginX)
-        Dim marginY As Single = pointToPixel(dpi, Me.MarginY)
-
+    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As CBarContent
         Dim shortBarWidth As Single = mmToPixel(dpi, 1.016F)
-        Dim longBarWidth = mmToPixel(dpi, 1.016F * 2.5F)
+        Dim longBarWidth As Single = mmToPixel(dpi, 1.016F * 2.5F)
 
-        Dim width = marginX
+        Dim width = 0
         Dim codes As List(Of Integer()) = Encode(data)
         For Each code As Integer() In codes
             For Each c As Integer In code
@@ -102,22 +99,23 @@ Public Class CItf
             Next
         Next
 
-        Dim h As Single = pointToPixel(dpi, r.Height) - marginY * 2
+        Dim scale As CScale = New CPointScale(marginX, marginY, r.Width, r.Height, dpi)
+        Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
             barHeight *= 0.7F
         End If
-        Dim height = barHeight + marginY
+        Dim height = barHeight + scale.PixelMarginY
 
 
-        Dim w As Single = pointToPixel(dpi, r.Width) - marginX * 2
-        If w <= 0 Or h <= 0 Then
+        Dim w As Single = scale.PixelWidth
+        If w <= 0 OrElse h <= 0 Then
             Return Nothing
         End If
 
-        Dim ret As New BarContent
-        Dim xPos As Single = 0.0F
-        Dim scale As Single = w / width
+        Dim ret As New CBarContent
+        Dim xPos As Single = 0
+        Dim _scale As Single = (w - scale.PixelMarginX) / width
         For Each code As Integer() In codes
             For i As Integer = 0 To code.Length - 1
                 Dim c As Integer = code(i)
@@ -127,9 +125,11 @@ Public Class CItf
                 Else
                     barWidth = longBarWidth
                 End If
-                barWidth *= scale
+                barWidth *= _scale
                 If i Mod 2 = 0 Then
-                    Dim b As New BarContent.Bar(r.X + xPos + marginX, r.Y + marginY, barWidth, barHeight)
+                    Dim x As Single = r.X + xPos + scale.PixelMarginX
+                    Dim y As Single = r.Y + scale.PixelMarginY
+                    Dim b As New CBarContent.CBar(x, y, barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += barWidth
@@ -139,14 +139,14 @@ Public Class CItf
         If WithText Then
             Dim _data As String = _Encode(data)
 
-            Dim textHeight As Single = h * 0.2F
-            Dim textWidth As Single = ((w * 0.9F) / _data.Length) * 2.0F
-            Dim fs As Single = Math.Max(Math.Min(textHeight, textWidth), 6.0F)
+            Dim fs As Single = FontSize(w, h, _data)
             Dim f As New Font("Arial", fs)
-
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
-            Dim t As New BarContent.Text(_data, f, r.X + w / 2 + marginX, r.Y + height, format)
+            Dim x As Single = r.X + w / 2 + scale.PixelMarginX
+            Dim y As Single = r.Y + height
+
+            Dim t As New CBarContent.CText(_data, f, x, y, format)
             ret.SetText(t)
         End If
 
@@ -170,19 +170,8 @@ Public Class CItf
     End Sub
 
     Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String)
-        Dim c As BarContent = CreateContent(r, dpi, data)
-        If c Is Nothing Then
-            Exit Sub
-        End If
-
-        For Each b As Bar In c.GetBars
-            g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
-        Next
-
-        Dim t As Text = c.GetText
-        If Not t Is Nothing Then
-            g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
-        End If
+        Dim c As CBarContent = CreateContent(r, dpi, data)
+        c.Draw(g)
     End Sub
 
 End Class

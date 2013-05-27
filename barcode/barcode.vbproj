@@ -71,6 +71,7 @@
     <Import Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="content\CBarContent.vb" />
     <Compile Include="CBarcode.vb" />
     <Compile Include="CCodabar.vb" />
     <Compile Include="CCode128.vb" />
@@ -96,6 +97,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="content\CPointScale.vb" />
+    <Compile Include="content\CScale.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

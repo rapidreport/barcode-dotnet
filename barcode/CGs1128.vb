@@ -1,6 +1,9 @@
 ﻿Imports System.Text
 Imports System.Text.RegularExpressions
-Imports jp.co.systembase.barcode.CBarcode.BarContent
+
+Imports jp.co.systembase.barcode.content
+Imports jp.co.systembase.barcode.content.CBarContent
+Imports jp.co.systembase.barcode.content.CScale
 
 Public Class CGs1128
     Inherits CBarcode
@@ -133,14 +136,14 @@ Public Class CGs1128
         Dim _startCodePoint As Integer = 0
         Dim _codeSetPoint As Integer = 0
 
-        Public MustOverride Function GetCodePoint(ByVal data As String) As Integer
+        Public MustOverride Function CodePoint(ByVal data As String) As Integer
 
         Public Sub New(ByVal startCodePoint As Integer, ByVal codeSetPoint As Integer)
             Me._startCodePoint = startCodePoint
             Me._codeSetPoint = codeSetPoint
         End Sub
 
-        Public Overridable Function GetNextData(ByVal data As String) As String
+        Public Overridable Function NextData(ByVal data As String) As String
             Return data.Substring(1)
         End Function
 
@@ -152,7 +155,7 @@ Public Class CGs1128
             Return _codeSetPoint
         End Function
 
-        Public Shared Function GetCodeType(ByVal data As String) As CodeType
+        Public Shared Function Type(ByVal data As String) As CodeType
             If data.Length >= 2 Then
                 If Char.IsDigit(data(0)) And Char.IsDigit(data(1)) Then
                     Return TYPE_C
@@ -173,7 +176,7 @@ Public Class CGs1128
             MyBase.New(START_A, SET_A)
         End Sub
 
-        Public Overrides Function GetCodePoint(ByVal data As String) As Integer
+        Public Overrides Function CodePoint(ByVal data As String) As Integer
             Dim c As Integer = Asc(data(0))
             If c <= &H1F Then ' <= 'US'
                 Return c + &H40 ' + '@'
@@ -191,7 +194,7 @@ Public Class CGs1128
             MyBase.New(START_B, SET_B)
         End Sub
 
-        Public Overrides Function GetCodePoint(ByVal data As String) As Integer
+        Public Overrides Function CodePoint(ByVal data As String) As Integer
             Return Asc(data(0)) - &H20 ' - 'SP'
         End Function
 
@@ -204,17 +207,15 @@ Public Class CGs1128
             MyBase.New(START_C, SET_C)
         End Sub
 
-        Public Overrides Function GetCodePoint(ByVal data As String) As Integer
+        Public Overrides Function CodePoint(ByVal data As String) As Integer
             Return Integer.Parse(data.Substring(0, 2))
         End Function
 
-        Public Overrides Function GetNextData(ByVal data As String) As String
+        Public Overrides Function NextData(ByVal data As String) As String
             Return data.Substring(2)
         End Function
 
     End Class
-
-    Private Const DPI As Integer = 72
 
     Private Const AI_START_PATTERN As String = "#{"
     Private Const AI_NUMBER_PATTERN As String = "[0-9]{2,4}"
@@ -263,13 +264,13 @@ Public Class CGs1128
         For Each map As String() In codes
             Dim _data = map(0) & map(1)
             While _data.Length > 0
-                Dim _type As CodeType = CodeType.GetCodeType(_data)
+                Dim _type As CodeType = CodeType.Type(_data)
                 If type.GetStartCodePoint <> _type.GetStartCodePoint Then
                     points.Add(_type.GetCodeSetPoint)
                     type = _type
                 End If
-                points.Add(_type.GetCodePoint(_data))
-                _data = _type.GetNextData(_data)
+                points.Add(_type.CodePoint(_data))
+                _data = _type.NextData(_data)
             End While
             Dim ai_2 As String = map(0).Substring(0, 2)
             If Not FIXED_AI.ContainsKey(ai_2) Then
@@ -305,21 +306,26 @@ Public Class CGs1128
 
     Private Sub validate(ByVal data As String)
         Dim r As New Regex(AI_PATTERN)
-        Dim _data As String = r.Replace(data, "")
+        Dim _data As String = r.Replace(data, String.Empty)
         For Each c As Char In _data
             If CHARS.IndexOf(c) < 0 Then
-                Throw New ArgumentException("illegal data: " & data)
+                Throw New ArgumentException("illegal char: " & c & " of data: " & data)
             End If
         Next
-        If Not data.StartsWith("#{") Or data.EndsWith("}") Then
-            Throw New ArgumentException("illegal data: " & data)
+
+        If Not data.StartsWith(AI_START_PATTERN) Then
+            Throw New ArgumentException("illegal data: " & data & ", must start with """ & AI_START_PATTERN & """")
         End If
+        If data.EndsWith(AI_END_PATTERN) Then
+            Throw New ArgumentException("illegal data: " & data & ", don't end with """ & AI_END_PATTERN & """")
+        End If
+
         Dim codes As List(Of String()) = createCodeMap(data)
         For Each map As String() In codes
             Dim ai_2 As String = map(0).Substring(0, 2)
             If FIXED_AI.ContainsKey(ai_2) Then
                 If FIXED_AI(ai_2) <> (map(0).Length + map(1).Length) Then
-                    Throw New ArgumentException("illegal ai length: (" & map(0) & ")")
+                    Throw New ArgumentException("illegal ai data length: (" & map(0) & ")")
                 End If
             End If
         Next
@@ -330,6 +336,7 @@ Public Class CGs1128
         If _encodeCache.ContainsKey(data) Then
             Return _encodeCache(data)
         End If
+
         Dim ret As New List(Of String())
         Dim r As New Regex(AI_PATTERN)
         Dim codes As String() = r.Split(data)
@@ -339,6 +346,7 @@ Public Class CGs1128
             ret.Add({m.Groups("ai").Value, codes(i)})
             m = m.NextMatch()
         Next
+
         If _encodeCache.Count = CACHE_MAX_SIZE Then
             Dim key As String = String.Empty
             For Each _key As String In _encodeCache.Keys
@@ -346,9 +354,10 @@ Public Class CGs1128
                 Exit For
             Next
             _encodeCache.Remove(key)
+            _encodeCache = New Dictionary(Of String, List(Of String()))(_encodeCache)
         End If
         _encodeCache.Add(data, ret)
-        Return ret
+        Return(ret)
     End Function
 
     Private Function calcCheckDigit(ByVal points As List(Of Integer)) As Byte
@@ -361,26 +370,23 @@ Public Class CGs1128
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal data As String) As BarContent
+                                  ByVal data As String) As CBarContent
         Return CreateContent(x, y, w, h, DPI, data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal dpi As Integer, ByVal data As String) As BarContent
+                                  ByVal dpi As Integer, ByVal data As String) As CBarContent
         Return CreateContent(New RectangleF(x, y, w, h), dpi, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As BarContent
+    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As CBarContent
         Return CreateContent(r, DPI, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As BarContent
-        Dim marginX As Single = pointToPixel(dpi, Me.MarginX)
-        Dim marginY As Single = pointToPixel(dpi, Me.MarginY)
-
+    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As CBarContent
         Dim barWidth As Single = mmToPixel(dpi, 0.191F)
 
-        Dim width As Single = 0.0F
+        Dim width As Single = 0
         Dim codes As List(Of Byte()) = encode(data)
         For Each code As Byte() In codes
             For Each c As Integer In code
@@ -388,28 +394,31 @@ Public Class CGs1128
             Next
         Next
 
-        Dim h As Single = pointToPixel(dpi, r.Height) - marginY * 2
+        Dim scale As CScale = New CPointScale(marginX, marginY, r.Width, r.Height, dpi)
+        Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
             barHeight *= 0.7F
         End If
-        Dim height = barHeight + marginY
+        Dim height = barHeight + scale.PixelMarginY
 
 
-        Dim w As Single = pointToPixel(dpi, r.Width) - marginX * 2
-        If w <= 0 Or h <= 0 Then
+        Dim w As Single = scale.PixelWidth
+        If w <= 0 OrElse h <= 0 Then
             Return Nothing
         End If
 
-        Dim ret As New BarContent
-        Dim xPos As Single = 0.0F
-        Dim scale As Single = (w - marginX) / width
+        Dim ret As New CBarContent
+        Dim xPos As Single = 0
+        Dim _scale As Single = (w - scale.PixelMarginX) / width
         For Each code As Byte() In codes
             For i As Integer = 0 To code.Length - 1
                 Dim c As Integer = code(i)
-                Dim _barWidth As Single = barWidth * c * scale
+                Dim _barWidth As Single = barWidth * c * _scale
                 If i Mod 2 = 0 Then
-                    Dim b As New BarContent.Bar(r.X + xPos + marginX, r.Y + marginY, _barWidth, barHeight)
+                    Dim x As Single = r.X + xPos + scale.PixelMarginX
+                    Dim y As Single = r.Y + scale.PixelMarginY
+                    Dim b As New CBarContent.CBar(x, y, _barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += _barWidth
@@ -419,14 +428,14 @@ Public Class CGs1128
         If WithText Then
             Dim _data As String = _Encode(data)
 
-            Dim textHeight As Single = h * 0.2F
-            Dim textWidth As Single = ((w * 0.9F) / _data.Length) * 2.0F
-            Dim fs As Single = Math.Max(Math.Min(textHeight, textWidth), 6.0F)
+            Dim fs As Single = FontSize(w, h, _data)
             Dim f As New Font("Arial", fs)
-
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
-            Dim t As New BarContent.Text(_data, f, r.X + w / 2 + marginX, r.Y + height, format)
+            Dim x As Single = r.X + w / 2 + scale.PixelMarginX
+            Dim y As Single = r.Y + height
+
+            Dim t As New CBarContent.CText(_data, f, x, y, format)
             ret.SetText(t)
         End If
 
@@ -450,19 +459,8 @@ Public Class CGs1128
     End Sub
 
     Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String)
-        Dim c As BarContent = CreateContent(r, dpi, data)
-        If c Is Nothing Then
-            Exit Sub
-        End If
-
-        For Each b As Bar In c.GetBars
-            g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
-        Next
-
-        Dim t As Text = c.GetText
-        If Not t Is Nothing Then
-            g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
-        End If
+        Dim c As CBarContent = CreateContent(r, dpi, data)
+        c.Draw(g)
     End Sub
 
 End Class

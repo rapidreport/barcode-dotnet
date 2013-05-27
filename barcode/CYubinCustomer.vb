@@ -1,4 +1,6 @@
-﻿Imports jp.co.systembase.barcode.CBarcode.BarContent
+﻿Imports jp.co.systembase.barcode.content
+Imports jp.co.systembase.barcode.content.CBarContent
+Imports jp.co.systembase.barcode.content.CScale
 
 Public Class CYubinCustomer
     Inherits CBarcode
@@ -70,8 +72,6 @@ Public Class CYubinCustomer
 
     Private Shared CHECK_DIGIT_PATTERNS As New Dictionary(Of String, Integer)
 
-    Private Const DPI As Integer = 72
-
     Shared Sub New()
         For i As Integer = 0 To CODE_CHARS.Length - 1
             CHECK_DIGIT_PATTERNS.Add(CODE_CHARS(i), i)
@@ -94,12 +94,13 @@ Public Class CYubinCustomer
             End If
         Next
 
-        For i As Integer = codes.Count To CODE_MAX_SIZE
+        For i As Integer = codes.Count + 1 To CODE_MAX_SIZE
             codes.Add(CODE_CHARS(14)) ' CC4
         Next
 
         Dim ret = codes.GetRange(0, CODE_MAX_SIZE)
-        ret.Add(calcCheckDigit(ret))
+        Dim pos As Integer = calcCheckDigit(ret)
+        ret.Add(CODE_CHARS(pos))
         ret.Insert(0, START_PATTERN)
         ret.Add(STOP_PATTERN)
 
@@ -108,13 +109,13 @@ Public Class CYubinCustomer
 
     Private Sub validate(ByVal data As String)
         For Each c As Char In data
-            If CODE_PATTERNS(c) Is Nothing Then
-                Throw New ArgumentException("illegal data: " & data)
+            If Not CODE_PATTERNS.ContainsKey(c) Then
+                Throw New ArgumentException("illegal char: " & c & " of data: " & data)
             End If
         Next
     End Sub
 
-    Private Function calcCheckDigit(ByVal codes As List(Of String)) As String
+    Private Function calcCheckDigit(ByVal codes As List(Of String)) As Integer
         Dim sum As Integer = 0
         For Each s As String In codes
             sum += CHECK_DIGIT_PATTERNS(s)
@@ -126,7 +127,7 @@ Public Class CYubinCustomer
             pos = 0
         End If
 
-        Return CODE_CHARS(pos)
+        Return pos
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
@@ -145,13 +146,10 @@ Public Class CYubinCustomer
     End Function
 
     Public Function CreateContent(ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
-                                  ByVal data As String) As BarContent
+                                  ByVal data As String) As CBarContent
         If point < 8.0F OrElse 11.5F < point Then
-            Throw New ArgumentException("illegal data: " & data)
+            Throw New ArgumentException("illegal data: " & data & ", point is 8.0 to 11.5")
         End If
-
-        Dim marginX As Single = pointToPixel(dpi, Me.MarginX)
-        Dim marginY As Single = pointToPixel(dpi, Me.MarginY)
 
         Dim longBarHeight As Single = mmToPixel(dpi, 3.6F * point / 10.0F)
         Dim timingBarHeight As Single = mmToPixel(dpi, 1.2F * point / 10.0F)
@@ -159,16 +157,17 @@ Public Class CYubinCustomer
         Dim barWidth As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
         Dim barSpace As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
 
+        Dim scale As CScale = New CPointScale(MarginX, MarginY, r.Width, r.Height, dpi)
         Dim xPos As Single = r.X
         Dim yTop As Single = r.Y
-        Dim xMax As Single = r.X + pointToPixel(dpi, r.Width) - marginX * 2
-        Dim yMax As Single = r.Y + pointToPixel(dpi, r.Height) - marginY * 2
+        Dim xMax As Single = r.X + scale.PixelWidth
+        Dim yMax As Single = r.Y + scale.PixelHeight
 
-        Dim ret As New BarContent
+        Dim ret As New CBarContent
         For Each code As String In Encode(data)
             For Each c As Char In code
                 Dim yPos As Single = yTop
-                Dim barHeight As Single = 0.0F
+                Dim barHeight As Single = 0
                 Select Case c
                     Case "1"
                         barHeight = longBarHeight
@@ -184,17 +183,16 @@ Public Class CYubinCustomer
                         Throw New ArgumentException("illegal switch case: " & c)
                 End Select
 
-                Dim x As Single = xPos + marginX
-                Dim y As Single = yPos + marginY
-                If x > xMax Or y > yMax Then
+                Dim x As Single = xPos + scale.PixelMarginX
+                Dim y As Single = yPos + scale.PixelMarginY
+                If x > xMax OrElse y > yMax Then
                     Exit For
                 End If
-
                 If y + barHeight > yMax Then
                     barHeight = yMax - y
                 End If
 
-                Dim b As BarContent.Bar = New BarContent.Bar(x, y, barWidth, barHeight)
+                Dim b As New CBarContent.CBar(x, y, barWidth, barHeight)
                 ret.Add(b)
 
                 xPos = xPos + barWidth + barSpace
@@ -225,14 +223,8 @@ Public Class CYubinCustomer
     Public Sub Render(ByVal g As Graphics, _
                       ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
                       ByVal data As String)
-        Dim c As BarContent = CreateContent(r, point, dpi, data)
-        If c Is Nothing Then
-            Exit Sub
-        End If
-
-        For Each b As Bar In c.GetBars
-            g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
-        Next
+        Dim c As CBarContent = CreateContent(r, point, dpi, data)
+        c.Draw(g)
     End Sub
 
 End Class
