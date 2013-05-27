@@ -20,6 +20,8 @@ Public Class CItf
     Private Shared START_PATTERN As Integer() = {0, 0, 0, 0}
     Private Shared STOP_PATTERN As Integer() = {1, 0, 0}
 
+    Public GenerateCheckSum As Boolean = False
+
     Public Function Encode(ByVal data As String) As List(Of Integer())
         If data Is Nothing OrElse data.Length = 0 Then
             Return Nothing
@@ -61,10 +63,43 @@ Public Class CItf
         Next
     End Sub
 
+    Private Function calcCheckDigit(ByVal data As String) As Integer
+        If data.Length Mod 2 = 0 Then
+            Throw New ArgumentException("illegal data length: " & data & ", must odd number")
+        End If
+
+        Dim sum As Integer = 0
+        For i As Integer = data.Length - 1 To 0 Step -1
+            Dim c As Integer = Asc(data(i))
+            Dim n As Integer = c - &H30 ' - '0'
+            If i Mod 2 <> 0 Then
+                sum += n
+            Else
+                sum += n * 3
+            End If
+        Next
+
+        Const checkNum = 10
+        Dim cd As Integer = checkNum - (sum Mod checkNum)
+        If cd = checkNum Then
+            cd = 0
+        End If
+
+        Return cd
+    End Function
+
     Protected Function _Encode(ByVal data As String) As String
         Dim _data As String = data
-        If Not _data.Length Mod 2 = 0 Then
-            _data = "0" & _data
+        If GenerateCheckSum Then
+            If _data.Length Mod 2 = 0 Then
+                _data = "0" & _data
+            End If
+            Dim cd As Integer = calcCheckDigit(_data)
+            _data &= cd.ToString
+        Else
+            If _data.Length Mod 2 <> 0 Then
+                _data = "0" & _data
+            End If
         End If
         Return _data
     End Function

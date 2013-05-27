@@ -62,9 +62,10 @@ Public Class FrmTest
                     Dim b As New CItf
                     b.Render(g, 500, 500, 200, 50, "12345678901231")
                     b.Render(g, 500, 600, 200, 50, "14901234567891")
-                    b.Render(g, 500, 700, 200, 50, "104901234567893")
+                    b.GenerateCheckSum = True
+                    b.Render(g, 500, 700, 200, 50, "1234567890123")
                     b.WithText = False
-                    b.Render(g, 500, 800, 200, 50, "12345678901231")
+                    b.Render(g, 500, 800, 200, 50, "1234567890123")
                 End With
                 e.HasMorePages = True
             Case 2
