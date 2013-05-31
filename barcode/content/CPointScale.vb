@@ -14,19 +14,19 @@
         End Sub
 
         Public Overrides Function PixelMarginX() As Single
-            Return pointToPixel(GetDpi(), GetMarginX())
+            Return PointToPixel(GetDpi(), GetMarginX())
         End Function
 
         Public Overrides Function PixelMarginY() As Single
-            Return pointToPixel(GetDpi(), GetMarginY())
+            Return PointToPixel(GetDpi(), GetMarginY())
         End Function
 
         Public Overrides Function PixelWidth() As Single
-            Return pointToPixel(GetDpi(), GetWidth()) - (PixelMarginX() * 2)
+            Return PointToPixel(GetDpi(), GetWidth()) - (PixelMarginX() * 2)
         End Function
 
         Public Overrides Function PixelHeight() As Single
-            Return pointToPixel(GetDpi(), GetHeigth()) - (PixelMarginY() * 2)
+            Return PointToPixel(GetDpi(), GetHeigth()) - (PixelMarginY() * 2)
         End Function
 
     End Class

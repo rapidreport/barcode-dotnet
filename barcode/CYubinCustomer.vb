@@ -131,31 +131,31 @@ Public Class CYubinCustomer
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                             ByVal point As Single, ByVal data As String)
-        Return CreateContent(x, y, w, h, point, DPI, data)
+                                  ByVal point As Single, ByVal data As String)
+        Return CreateContent(New RectangleF(x, y, w, h), point, data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                             ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
+                                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
         Return CreateContent(New RectangleF(x, y, w, h), point, dpi, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal point As Single, _
-                             ByVal data As String)
+    Public Function CreateContent(ByVal r As RectangleF, _
+                                  ByVal point As Single, ByVal data As String)
         Return CreateContent(r, point, DPI, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
-                                  ByVal data As String) As CBarContent
+    Public Function CreateContent(ByVal r As RectangleF, _
+                                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String) As CBarContent
         If point < 8.0F OrElse 11.5F < point Then
             Throw New ArgumentException("illegal data: " & data & ", point is 8.0 to 11.5")
         End If
 
-        Dim longBarHeight As Single = mmToPixel(dpi, 3.6F * point / 10.0F)
-        Dim timingBarHeight As Single = mmToPixel(dpi, 1.2F * point / 10.0F)
+        Dim longBarHeight As Single = MmToPixel(dpi, 3.6F * point / 10.0F)
+        Dim timingBarHeight As Single = MmToPixel(dpi, 1.2F * point / 10.0F)
         Dim semilongBarHeight As Single = longBarHeight / 2.0F + timingBarHeight / 2.0F
-        Dim barWidth As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
-        Dim barSpace As Single = mmToPixel(dpi, 0.6F * point / 10.0F)
+        Dim barWidth As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
+        Dim barSpace As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
 
         Dim scale As CScale = New CPointScale(MarginX, MarginY, r.Width, r.Height, dpi)
         Dim xPos As Single = r.X
@@ -205,7 +205,7 @@ Public Class CYubinCustomer
     Public Sub Render(ByVal g As Graphics, _
                       ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                       ByVal point As Single, ByVal data As String)
-        Render(g, x, y, w, h, point, DPI, data)
+        Render(g, New RectangleF(x, y, w, h), point, data)
     End Sub
 
     Public Sub Render(ByVal g As Graphics, _
@@ -215,14 +215,14 @@ Public Class CYubinCustomer
     End Sub
 
     Public Sub Render(ByVal g As Graphics, _
-                      ByVal r As RectangleF, ByVal point As Single, _
-                      ByVal data As String)
+                      ByVal r As RectangleF, _
+                      ByVal point As Single, ByVal data As String)
         Render(g, r, point, DPI, data)
     End Sub
 
     Public Sub Render(ByVal g As Graphics, _
-                      ByVal r As RectangleF, ByVal point As Single, ByVal dpi As Integer, _
-                      ByVal data As String)
+                      ByVal r As RectangleF, _
+                      ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
         Dim c As CBarContent = CreateContent(r, point, dpi, data)
         c.Draw(g)
     End Sub

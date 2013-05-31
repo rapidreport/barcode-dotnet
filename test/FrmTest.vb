@@ -71,7 +71,7 @@ Public Class FrmTest
             Case 2
                 With Nothing
                     Dim b As New CYubinCustomer
-                    Const dpi = 100
+                    Const dpi As Integer = 100
                     b.Render(g, 20, 50, 300, 50, 8.0F, dpi, "1234567890-")
                     b.Render(g, 20, 150, 350, 50, 9.0F, dpi, "ABCDEFGHIJKLMNOPQRST")
                     b.Render(g, 20, 250, 400, 50, 10.0F, dpi, "UVWXYZ")
@@ -79,11 +79,14 @@ Public Class FrmTest
                 End With
                 With Nothing
                     Dim b As New CGs1128
-                    b.Render(g, 450, 50, 300, 50, "#{00}123456789012345678")
-                    b.Render(g, 450, 150, 300, 50, "#{11}ABCDEF#{99}!""%&'()*+,-./")
-                    b.Render(g, 450, 250, 300, 50, "#{01}04912345123459#{10}ABC123")
+                    Const unit As GraphicsUnit = GraphicsUnit.Display
+                    b.Render(g, 450, 50, 300, 50, unit, "#{00}123456789012345678")
+                    b.Render(g, 450, 150, 300, 50, unit, "#{11}ABCDEF#{99}!""%&'()*+,-./")
                     b.WithText = False
-                    b.Render(g, 450, 350, 300, 50, "#{01}04912345123459#{10}ABC123")
+                    b.Render(g, 450, 250, 300, 50, unit, "#{01}04912345123459#{10}ABC123")
+                    b.WithText = True
+                    b.ConvenienceFormat = True
+                    b.Render(g, 450, 350, 300, 50, unit, "#{91}123456789012345678901234567890123456789012")
                 End With
                 e.HasMorePages = False
             Case Else

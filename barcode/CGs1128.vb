@@ -127,6 +127,8 @@ Public Class CGs1128
 
     Private Const CHARS As String = "!""%&'()*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
 
+    Public ConvenienceFormat As Boolean = False
+
     Private Shared TYPE_A As New CodeTypeA
     Private Shared TYPE_B As New CodeTypeB
     Private Shared TYPE_C As New CodeTypeC
@@ -139,8 +141,8 @@ Public Class CGs1128
         Public MustOverride Function CodePoint(ByVal data As String) As Integer
 
         Public Sub New(ByVal startCodePoint As Integer, ByVal codeSetPoint As Integer)
-            Me._startCodePoint = startCodePoint
-            Me._codeSetPoint = codeSetPoint
+            _startCodePoint = startCodePoint
+            _codeSetPoint = codeSetPoint
         End Sub
 
         Public Overridable Function NextData(ByVal data As String) As String
@@ -222,6 +224,8 @@ Public Class CGs1128
     Private Const AI_END_PATTERN As String = "}"
     Private Const AI_PATTERN As String = AI_START_PATTERN + AI_NUMBER_PATTERN + AI_END_PATTERN
 
+    Private Const AI_CONVENIENCE As String = "91"
+
     Private Shared FIXED_AI As New Dictionary(Of String, Integer) From _
         {{"00", 20}, _
          {"01", 16}, _
@@ -244,9 +248,30 @@ Public Class CGs1128
          {"34", 10}, _
          {"35", 10}, _
          {"36", 10}, _
-         {"41", 16}}
+         {"41", 16}, _
+         {AI_CONVENIENCE, 44}}
 
-    Private _encodeCache As New Dictionary(Of String, List(Of String()))
+    Private Class CodeMap
+
+        Dim _ai As String
+        Dim _data As String
+
+        Public Sub New(ByVal ai As String, ByVal data As String)
+            _ai = ai
+            _data = data
+        End Sub
+
+        Public Function GetAi() As String
+            Return _ai
+        End Function
+
+        Public Function GetData() As String
+            Return _data
+        End Function
+
+    End Class
+
+    Private _codeMapCache As New Dictionary(Of String, List(Of CodeMap))
     Private Const CACHE_MAX_SIZE As Integer = 10
 
     Public Function encode(ByVal data) As List(Of Byte())
@@ -257,12 +282,12 @@ Public Class CGs1128
         validate(data)
 
         Dim points As New List(Of Integer)
-        Dim codes As List(Of String()) = createCodeMap(data)
+        Dim codes As List(Of CodeMap) = createCodeMap(data)
         Dim type As CodeType = TYPE_C
         points.Add(type.GetStartCodePoint)
         points.Add(FNC1)
-        For Each map As String() In codes
-            Dim _data = map(0) & map(1)
+        For Each map As CodeMap In codes
+            Dim _data = map.GetAi & map.GetData
             While _data.Length > 0
                 Dim _type As CodeType = CodeType.Type(_data)
                 If type.GetStartCodePoint <> _type.GetStartCodePoint Then
@@ -272,7 +297,7 @@ Public Class CGs1128
                 points.Add(_type.CodePoint(_data))
                 _data = _type.NextData(_data)
             End While
-            Dim ai_2 As String = map(0).Substring(0, 2)
+            Dim ai_2 As String = map.GetAi.Substring(0, 2)
             If Not FIXED_AI.ContainsKey(ai_2) Then
                 points.Add(FNC1)
             End If
@@ -296,11 +321,18 @@ Public Class CGs1128
     End Function
 
     Protected Function _Encode(ByVal data) As String
-        Dim codes As List(Of String()) = createCodeMap(data)
+        Dim codes As List(Of CodeMap) = createCodeMap(data)
         Dim sb As New StringBuilder()
-        For Each map As String() In codes
-            sb.Append("(" & map(0) & ")" & map(1))
+        For Each map As CodeMap In codes
+            sb.Append("(" & map.GetAi & ")" & map.GetData)
         Next
+        If ConvenienceFormat Then
+            sb.Insert(10, "-")
+            sb.Insert(33, " ")
+            sb.Insert(40, "-")
+            sb.Insert(42, "-")
+            sb.Insert(49, "-")
+        End If
         Return sb.ToString
     End Function
 
@@ -320,44 +352,48 @@ Public Class CGs1128
             Throw New ArgumentException("illegal data: " & data & ", don't end with """ & AI_END_PATTERN & """")
         End If
 
-        Dim codes As List(Of String()) = createCodeMap(data)
-        For Each map As String() In codes
-            Dim ai_2 As String = map(0).Substring(0, 2)
+        Dim codes As List(Of CodeMap) = createCodeMap(data)
+        For Each map As CodeMap In codes
+            Dim ai_2 As String = map.GetAi.Substring(0, 2)
+            If ConvenienceFormat AndAlso AI_CONVENIENCE <> ai_2 Then
+                Throw New ArgumentException("illegal a: (" & map.GetAi & ")")
+            End If
             If FIXED_AI.ContainsKey(ai_2) Then
-                If FIXED_AI(ai_2) <> (map(0).Length + map(1).Length) Then
-                    Throw New ArgumentException("illegal ai data length: (" & map(0) & ")")
+                If FIXED_AI(ai_2) <> (map.GetAi.Length + map.GetData.Length) Then
+                    Throw New ArgumentException("illegal ai data length: (" & map.GetAi & ")")
                 End If
             End If
         Next
 
     End Sub
 
-    Private Function createCodeMap(ByVal data As String) As List(Of String())
-        If _encodeCache.ContainsKey(data) Then
-            Return _encodeCache(data)
+    Private Function createCodeMap(ByVal data As String) As List(Of CodeMap)
+        If _codeMapCache.ContainsKey(data) Then
+            Return _codeMapCache(data)
         End If
 
-        Dim ret As New List(Of String())
+        Dim ret As New List(Of CodeMap)
         Dim r As New Regex(AI_PATTERN)
         Dim codes As String() = r.Split(data)
         r = New Regex(AI_START_PATTERN & "(?<ai>" & AI_NUMBER_PATTERN & ")" & AI_END_PATTERN)
         Dim m As Match = r.Match(data)
         For i As Integer = 1 To codes.Length - 1
-            ret.Add({m.Groups("ai").Value, codes(i)})
+            Dim map As New CodeMap(m.Groups("ai").Value, codes(i))
+            ret.Add(map)
             m = m.NextMatch()
         Next
 
-        If _encodeCache.Count = CACHE_MAX_SIZE Then
+        If _codeMapCache.Count = CACHE_MAX_SIZE Then
             Dim key As String = String.Empty
-            For Each _key As String In _encodeCache.Keys
+            For Each _key As String In _codeMapCache.Keys
                 key = _key
                 Exit For
             Next
-            _encodeCache.Remove(key)
-            _encodeCache = New Dictionary(Of String, List(Of String()))(_encodeCache)
+            _codeMapCache.Remove(key)
+            _codeMapCache = New Dictionary(Of String, List(Of CodeMap))(_codeMapCache)
         End If
-        _encodeCache.Add(data, ret)
-        Return(ret)
+        _codeMapCache.Add(data, ret)
+        Return ret
     End Function
 
     Private Function calcCheckDigit(ByVal points As List(Of Integer)) As Byte
@@ -369,22 +405,62 @@ Public Class CGs1128
         Return sum Mod checkNum
     End Function
 
-    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal data As String) As CBarContent
-        Return CreateContent(x, y, w, h, DPI, data)
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal dpi As Integer, ByVal data As String)
+        Return CreateContent(g, New RectangleF(x, y, w, h), dpi, data)
     End Function
 
-    Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal dpi As Integer, ByVal data As String) As CBarContent
-        Return CreateContent(New RectangleF(x, y, w, h), dpi, data)
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal unit As GraphicsUnit, ByVal data As String)
+        Return CreateContent(g, New RectangleF(x, y, w, h), unit, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As CBarContent
-        Return CreateContent(r, DPI, data)
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal data As String)
+        Return CreateContent(g, New RectangleF(x, y, w, h), data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As CBarContent
-        Dim barWidth As Single = mmToPixel(dpi, 0.191F)
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                                  ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String)
+        Return CreateContent(g, New RectangleF(x, y, w, h), dpi, unit, data)
+    End Function
+
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal r As RectangleF, _
+                                  ByVal dpi As Integer, ByVal data As String)
+        Return CreateContent(g, r, dpi, UNIT, data)
+    End Function
+
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal r As RectangleF, _
+                                  ByVal unit As GraphicsUnit, ByVal data As String)
+        Return CreateContent(g, r, DPI, unit, data)
+    End Function
+
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal r As RectangleF, _
+                                  ByVal data As String)
+        Return CreateContent(g, r, DPI, UNIT, data)
+    End Function
+
+    Public Function CreateContent(ByVal g As Graphics, _
+                                  ByVal r As RectangleF, _
+                                  ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String) As CBarContent
+        Dim barWidth As Single = MmToPixel(dpi, 0.191F)
+        If ConvenienceFormat Then
+            Select Case dpi
+                Case 300, 600
+                    barWidth = MmToPixel(dpi, 0.169F)
+                Case 400
+                    barWidth = MmToPixel(dpi, 0.19F)
+                Case 480
+                    barWidth = MmToPixel(dpi, 0.158F)
+            End Select
+        End If
 
         Dim width As Single = 0
         Dim codes As List(Of Byte()) = encode(data)
@@ -394,14 +470,16 @@ Public Class CGs1128
             Next
         Next
 
-        Dim scale As CScale = New CPointScale(marginX, marginY, r.Width, r.Height, dpi)
+        Dim scale As CScale = New CPointScale(MarginX, MarginY, r.Width, r.Height, dpi)
         Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
-            barHeight *= 0.7F
+            If ConvenienceFormat Then
+                barHeight *= 0.5F
+            Else
+                barHeight *= 0.7F
+            End If
         End If
-        Dim height = barHeight + scale.PixelMarginY
-
 
         Dim w As Single = scale.PixelWidth
         If w <= 0 OrElse h <= 0 Then
@@ -410,7 +488,7 @@ Public Class CGs1128
 
         Dim ret As New CBarContent
         Dim xPos As Single = 0
-        Dim _scale As Single = (w - scale.PixelMarginX) / width
+        Dim _scale As Single = w / width
         For Each code As Byte() In codes
             For i As Integer = 0 To code.Length - 1
                 Dim c As Integer = code(i)
@@ -427,16 +505,21 @@ Public Class CGs1128
 
         If WithText Then
             Dim _data As String = _Encode(data)
+            Dim t As String() = _data.Split(" ")
+            Dim baseText = t(0)
 
-            Dim fs As Single = FontSize(w, h, _data)
+            Dim fs As Single = FontSize(w, h, baseText)
             Dim f As New Font("Arial", fs)
             Dim format As StringFormat = New StringFormat()
-            format.Alignment = StringAlignment.Center
-            Dim x As Single = r.X + w / 2 + scale.PixelMarginX
-            Dim y As Single = r.Y + height
+            format.Alignment = StringAlignment.Near
+            Dim x As Single = r.X + CenterAlign(f, g, w, baseText, unit) + scale.PixelMarginX
+            Dim y As Single = r.Y + barHeight + scale.PixelMarginY
 
-            Dim t As New CBarContent.CText(_data, f, x, y, format)
-            ret.SetText(t)
+            For i As Integer = 0 To t.Length - 1
+                Dim _y As Single = y + (f.Size * i)
+                Dim _t As New CBarContent.CText(t(i), f, x, _y, format)
+                ret.Add(_t)
+            Next
         End If
 
         Return ret
@@ -444,22 +527,50 @@ Public Class CGs1128
 
     Public Sub Render(ByVal g As Graphics, _
                       ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                      ByVal data As String)
-        Render(g, x, y, w, h, DPI, data)
-    End Sub
-
-    Public Sub Render(ByVal g As Graphics, _
-                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                       ByVal dpi As Integer, ByVal data As String)
         Render(g, New RectangleF(x, y, w, h), dpi, data)
     End Sub
 
-    Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal data As String)
-        Render(g, r, DPI, data)
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal unit As GraphicsUnit, ByVal data As String)
+        Render(g, New RectangleF(x, y, w, h), unit, data)
     End Sub
 
-    Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String)
-        Dim c As CBarContent = CreateContent(r, dpi, data)
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal data As String)
+        Render(g, New RectangleF(x, y, w, h), data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String)
+        Render(g, New RectangleF(x, y, w, h), dpi, unit, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, _
+                      ByVal dpi As Integer, ByVal data As String)
+        Render(g, r, dpi, UNIT, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, _
+                      ByVal unit As GraphicsUnit, ByVal data As String)
+        Render(g, r, DPI, unit, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, _
+                      ByVal data As String)
+        Render(g, r, DPI, UNIT, data)
+    End Sub
+
+    Public Sub Render(ByVal g As Graphics, _
+                      ByVal r As RectangleF, _
+                      ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String)
+        Dim c As CBarContent = CreateContent(g, r, dpi, unit, data)
         c.Draw(g)
     End Sub
 

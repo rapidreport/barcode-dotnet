@@ -4,6 +4,8 @@
 
         Public Const DPI As Integer = 72
 
+        Public Const UNIT As GraphicsUnit = GraphicsUnit.Point
+
         Private _marginX As Single
         Private _marginY As Single
         Private _width As Single
@@ -24,11 +26,11 @@
             Me.New(marginX, marginY, width, height, DPI)
         End Sub
 
-        Public Shared Function pointToPixel(ByVal dpi As Integer, ByVal point As Single) As Single
+        Public Shared Function PointToPixel(ByVal dpi As Integer, ByVal point As Single) As Single
             Return dpi * (point / 72.0F)
         End Function
 
-        Public Shared Function mmToPixel(ByVal dpi As Integer, ByVal mm As Single) As Single
+        Public Shared Function MmToPixel(ByVal dpi As Integer, ByVal mm As Single) As Single
             Return dpi * (mm / 25.4F)
         End Function
 

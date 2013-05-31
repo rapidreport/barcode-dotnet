@@ -3,13 +3,13 @@
     Public Class CBarContent
 
         Private _bars As New List(Of CBar)
-        Private _text As CText
+        Private _text As New List(Of CText)
 
         Public Function GetBars() As List(Of CBar)
             Return _bars
         End Function
 
-        Public Function GetText() As CText
+        Public Function GetText() As List(Of CText)
             Return _text
         End Function
 
@@ -17,12 +17,16 @@
             _bars = bars
         End Sub
 
-        Public Sub SetText(ByVal text As CText)
+        Public Sub SetText(ByVal text As List(Of CText))
             _text = text
         End Sub
 
         Public Sub Add(ByVal bar As CBar)
             _bars.Add(bar)
+        End Sub
+
+        Public Sub Add(ByVal text As CText)
+            _text.Add(text)
         End Sub
 
         Public Sub Draw(ByVal g As Graphics)
@@ -43,11 +47,12 @@
             If GetBars() Is Nothing OrElse GetBars.Count = 0 Then
                 Exit Sub
             End If
-            Dim t As CText = GetText()
-            If t Is Nothing Then
+            If GetText() Is Nothing OrElse GetText.Count = 0 Then
                 Exit Sub
             End If
-            g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
+            For Each t As CText In GetText()
+                g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
+            Next
         End Sub
 
         Public Class CBar

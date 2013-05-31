@@ -106,7 +106,7 @@ Public Class CItf
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                                   ByVal data As String) As CBarContent
-        Return CreateContent(x, y, w, h, DPI, data)
+        Return CreateContent(New RectangleF(x, y, w, h), data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
@@ -119,8 +119,8 @@ Public Class CItf
     End Function
 
     Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As CBarContent
-        Dim shortBarWidth As Single = mmToPixel(dpi, 1.016F)
-        Dim longBarWidth As Single = mmToPixel(dpi, 1.016F * 2.5F)
+        Dim shortBarWidth As Single = MmToPixel(dpi, 1.016F)
+        Dim longBarWidth As Single = MmToPixel(dpi, 1.016F * 2.5F)
 
         Dim width = 0
         Dim codes As List(Of Integer()) = Encode(data)
@@ -140,8 +140,6 @@ Public Class CItf
         If WithText Then
             barHeight *= 0.7F
         End If
-        Dim height = barHeight + scale.PixelMarginY
-
 
         Dim w As Single = scale.PixelWidth
         If w <= 0 OrElse h <= 0 Then
@@ -150,7 +148,7 @@ Public Class CItf
 
         Dim ret As New CBarContent
         Dim xPos As Single = 0
-        Dim _scale As Single = (w - scale.PixelMarginX) / width
+        Dim _scale As Single = w / width
         For Each code As Integer() In codes
             For i As Integer = 0 To code.Length - 1
                 Dim c As Integer = code(i)
@@ -178,11 +176,11 @@ Public Class CItf
             Dim f As New Font("Arial", fs)
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
-            Dim x As Single = r.X + w / 2 + scale.PixelMarginX
-            Dim y As Single = r.Y + height
+            Dim x As Single = r.X + (w / 2) + scale.PixelMarginX
+            Dim y As Single = r.Y + barHeight + scale.PixelMarginY
 
             Dim t As New CBarContent.CText(_data, f, x, y, format)
-            ret.SetText(t)
+            ret.Add(t)
         End If
 
         Return ret
@@ -191,7 +189,7 @@ Public Class CItf
     Public Sub Render(ByVal g As Graphics, _
                       ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                       ByVal data As String)
-        Render(g, x, y, w, h, DPI, data)
+        Render(g, New RectangleF(x, y, w, h), data)
     End Sub
 
     Public Sub Render(ByVal g As Graphics, _
