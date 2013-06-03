@@ -148,7 +148,7 @@ Public Class CYubinCustomer
     Public Function CreateContent(ByVal r As RectangleF, _
                                   ByVal point As Single, ByVal dpi As Integer, ByVal data As String) As CBarContent
         If point < 8.0F OrElse 11.5F < point Then
-            Throw New ArgumentException("illegal data: " & data & ", point is 8.0 to 11.5")
+            Throw New ArgumentException("illegal point: " & point & ", point is 8.0 to 11.5")
         End If
 
         Dim longBarHeight As Single = MmToPixel(dpi, 3.6F * point / 10.0F)
