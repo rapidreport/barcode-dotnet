@@ -80,13 +80,13 @@ Public Class FrmTest
                 With Nothing
                     Dim b As New CGs1128
                     Const unit As GraphicsUnit = GraphicsUnit.Display
-                    b.Render(g, 450, 50, 300, 50, unit, "#{00}123456789012345678")
-                    b.Render(g, 450, 150, 300, 50, unit, "#{11}ABCDEF#{99}!""%&'()*+,-./")
+                    b.Render(g, 450, 50, 300, 50, unit, "{00}123456789012345678")
+                    b.Render(g, 450, 150, 300, 50, unit, "{11}ABCDEF{99}!""%&'()*+,-./")
                     b.WithText = False
-                    b.Render(g, 450, 250, 300, 50, unit, "#{01}04912345123459#{10}ABC123")
+                    b.Render(g, 450, 250, 300, 50, unit, "{01}04912345123459{10}ABC123")
                     b.WithText = True
                     b.ConvenienceFormat = True
-                    b.Render(g, 450, 350, 300, 50, unit, "#{91}123456789012345678901234567890123456789012")
+                    b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
                 End With
                 e.HasMorePages = False
             Case Else

@@ -219,7 +219,7 @@ Public Class CGs1128
 
     End Class
 
-    Private Const AI_START_PATTERN As String = "#{"
+    Private Const AI_START_PATTERN As String = "{"
     Private Const AI_NUMBER_PATTERN As String = "[0-9]{2,4}"
     Private Const AI_END_PATTERN As String = "}"
     Private Const AI_PATTERN As String = AI_START_PATTERN + AI_NUMBER_PATTERN + AI_END_PATTERN
