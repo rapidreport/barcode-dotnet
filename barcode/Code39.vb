@@ -1,5 +1,5 @@
-﻿Public Class CCode39
-    Inherits CBarcode
+﻿Public Class Code39
+    Inherits Barcode
 
     Private Shared CODE_PATTERNS(,) As Byte = _
       {{0, 0, 0, 1, 1, 0, 1, 0, 0}, _

@@ -1,30 +1,18 @@
-﻿Public Class CEan13
-    Inherits CEan
+﻿Public Class Ean8
+    Inherits Ean
 
-    Protected Shared PREF_PARITY(,) As Byte = _
-      {{0, 0, 0, 0, 0, 0}, _
-       {0, 0, 1, 0, 1, 1}, _
-       {0, 0, 1, 1, 0, 1}, _
-       {0, 0, 1, 1, 1, 0}, _
-       {0, 1, 0, 0, 1, 1}, _
-       {0, 1, 1, 0, 0, 1}, _
-       {0, 1, 1, 1, 0, 0}, _
-       {0, 1, 0, 1, 0, 1}, _
-       {0, 1, 0, 1, 1, 0}, _
-       {0, 1, 1, 0, 1, 0}}
-
-    Private Shared GUARDS() As Integer = {0, 2, 28, 30, 56, 58}
-    Private Shared CHARPOS() As Single = {4, 14, 21, 28, 35, 42, 49, 61, 68, 75, 81, 88, 95}
+    Private Shared GUARDS() As Integer = {0, 2, 20, 22, 40, 42}
+    Private Shared CHARPOS() As Single = {7, 14, 21, 28, 39, 46, 53, 60}
 
     Public Function Encode(ByVal data As String) As Byte()
         If data Is Nothing OrElse data.Length = 0 Then
             Return Nothing
         End If
         Dim _data As List(Of Byte) = pack(data)
-        If _data.Count = 12 Then
+        If _data.Count = 7 Then
             _data.Add(Me.calcCheckDigit(_data))
         End If
-        If _data.Count <> 13 Then
+        If _data.Count <> 8 Then
             Throw New ArgumentException("illegal data: " & data)
         End If
         Return _Encode(_data)
@@ -33,15 +21,11 @@
     Private Function _Encode(ByVal data As List(Of Byte)) As Byte()
         Dim cs As New List(Of Byte)
         cs.AddRange(START_PATTERN)
-        For i As Integer = 1 To 6
-            If PREF_PARITY(data(0), i - 1) Then
-                addCodesEven(cs, data(i))
-            Else
-                addCodes(cs, data(i))
-            End If
+        For i As Integer = 0 To 3
+            addCodes(cs, data(i))
         Next
         cs.AddRange(CENTER_PATTERN)
-        For i As Integer = 7 To 12
+        For i As Integer = 4 To 7
             addCodes(cs, data(i))
         Next
         cs.AddRange(STOP_PATTERN)
@@ -49,8 +33,8 @@
     End Function
 
     Public Sub Render(ByVal g As Graphics, _
-                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                  ByVal data As String)
+                      ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
+                      ByVal data As String)
         Me.Render(g, New RectangleF(x, y, w, h), data)
     End Sub
 
@@ -72,23 +56,16 @@
             Exit Sub
         End If
         Dim _data As List(Of Byte) = pack(data)
-        If _data.Count = 12 Then
+        If _data.Count = 7 Then
             _data.Add(Me.calcCheckDigit(_data))
         End If
-        If _data.Count <> 13 Then
+        If _data.Count <> 8 Then
             Throw New ArgumentException("illegal data: " & data)
         End If
         Dim cs() As Byte = _Encode(_data)
-        Dim mw As Single
-        Dim x As Single
-        If Me.WithText Then
-            mw = w / (12 * 7 + 18)
-            x = MarginX + mw * 7
-        Else
-            mw = w / (12 * 7 + 11)
-            x = MarginX
-        End If
+        Dim mw As Single = w / (8 * 7 + 11)
         Dim draw As Boolean = True
+        Dim x As Single = MarginX
         For i As Integer = 0 To cs.Length - 1
             Dim dw As Single = cs(i) * mw
             If draw Then
@@ -106,7 +83,7 @@
             Dim f As New Font("Arial", fs)
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
-            For i As Integer = 0 To 12
+            For i As Integer = 0 To 7
                 g.DrawString(_data(i), f, Brushes.Black, r.X + CHARPOS(i) * mw + MarginX, r.Y + _h + MarginY, format)
             Next
         End If

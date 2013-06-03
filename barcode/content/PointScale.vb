@@ -1,7 +1,7 @@
 ﻿Namespace content
 
-    Public Class CPointScale
-        Inherits CScale
+    Public Class PointScale
+        Inherits Scale
 
         Public Sub New(ByVal marginX As Single, ByVal marginY As Single, _
                        ByVal width As Single, ByVal height As Single, ByVal dpi As Integer)

@@ -2,11 +2,11 @@
 Imports System.Text.RegularExpressions
 
 Imports jp.co.systembase.barcode.content
-Imports jp.co.systembase.barcode.content.CBarContent
-Imports jp.co.systembase.barcode.content.CScale
+Imports jp.co.systembase.barcode.content.BarContent
+Imports jp.co.systembase.barcode.content.Scale
 
-Public Class CGs1128
-    Inherits CBarcode
+Public Class Gs1128
+    Inherits Barcode
 
     Private Shared CODE_PATTERNS(,) As Byte = _
         {{2, 1, 2, 2, 2, 2}, _
@@ -449,7 +449,7 @@ Public Class CGs1128
 
     Public Function CreateContent(ByVal g As Graphics, _
                                   ByVal r As RectangleF, _
-                                  ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String) As CBarContent
+                                  ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String) As BarContent
         Dim barWidth As Single = MmToPixel(dpi, 0.191F)
         If ConvenienceFormat Then
             Select Case dpi
@@ -470,7 +470,7 @@ Public Class CGs1128
             Next
         Next
 
-        Dim scale As CScale = New CPointScale(MarginX, MarginY, r.Width, r.Height, dpi)
+        Dim scale As Scale = New PointScale(MarginX, MarginY, r.Width, r.Height, dpi)
         Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
@@ -486,7 +486,7 @@ Public Class CGs1128
             Return Nothing
         End If
 
-        Dim ret As New CBarContent
+        Dim ret As New BarContent
         Dim xPos As Single = 0
         Dim _scale As Single = w / width
         For Each code As Byte() In codes
@@ -496,7 +496,7 @@ Public Class CGs1128
                 If i Mod 2 = 0 Then
                     Dim x As Single = r.X + xPos + scale.PixelMarginX
                     Dim y As Single = r.Y + scale.PixelMarginY
-                    Dim b As New CBarContent.CBar(x, y, _barWidth, barHeight)
+                    Dim b As New BarContent.CBar(x, y, _barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += _barWidth
@@ -517,7 +517,7 @@ Public Class CGs1128
 
             For i As Integer = 0 To t.Length - 1
                 Dim _y As Single = y + (f.Size * i)
-                Dim _t As New CBarContent.CText(t(i), f, x, _y, format)
+                Dim _t As New BarContent.CText(t(i), f, x, _y, format)
                 ret.Add(_t)
             Next
         End If
@@ -570,7 +570,7 @@ Public Class CGs1128
     Public Sub Render(ByVal g As Graphics, _
                       ByVal r As RectangleF, _
                       ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String)
-        Dim c As CBarContent = CreateContent(g, r, dpi, unit, data)
+        Dim c As BarContent = CreateContent(g, r, dpi, unit, data)
         c.Draw(g)
     End Sub
 

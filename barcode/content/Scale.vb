@@ -1,6 +1,6 @@
 ﻿Namespace content
 
-    Public MustInherit Class CScale
+    Public MustInherit Class Scale
 
         Public Const DPI As Integer = 72
 

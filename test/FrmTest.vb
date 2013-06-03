@@ -17,7 +17,7 @@ Public Class FrmTest
         Select Case page
             Case 1
                 With Nothing
-                    Dim b As New CCode128
+                    Dim b As New Code128
                     b.Render(g, 20, 50, 200, 50, "0123456789CODE")
                     b.Render(g, 20, 150, 200, 50, "!@#$%^&*()-")
                     b.Render(g, 20, 250, 200, 50, "[]{};':""")
@@ -25,7 +25,7 @@ Public Class FrmTest
                     b.Render(g, 20, 350, 200, 50, "abcd12!")
                 End With
                 With Nothing
-                    Dim b As New CEan8
+                    Dim b As New Ean8
                     b.Render(g, 300, 50, 100, 50, "4901234")
                     b.Render(g, 300, 150, 100, 50, "5678901")
                     b.Render(g, 300, 250, 100, 50, "5678901")
@@ -33,7 +33,7 @@ Public Class FrmTest
                     b.Render(g, 300, 350, 100, 50, "8888888")
                 End With
                 With Nothing
-                    Dim b As New CEan13
+                    Dim b As New Ean13
                     b.Render(g, 500, 50, 150, 50, "490123456789")
                     b.Render(g, 500, 150, 150, 50, "192205502800")
                     b.Render(g, 500, 250, 150, 50, "978488337649")
@@ -41,7 +41,7 @@ Public Class FrmTest
                     b.Render(g, 500, 350, 150, 50, "390123456789")
                 End With
                 With Nothing
-                    Dim b As New CCode39
+                    Dim b As New Code39
                     b.Render(g, 20, 500, 200, 50, "0123456789")
                     b.Render(g, 20, 600, 200, 50, "ABCDEFGHIJ")
                     b.GenerateCheckSum = True
@@ -50,7 +50,7 @@ Public Class FrmTest
                     b.Render(g, 20, 800, 200, 50, "VWXYZ-. $/+%")
                 End With
                 With Nothing
-                    Dim b As New CCodabar
+                    Dim b As New Codabar
                     b.Render(g, 300, 500, 150, 50, "A123456A")
                     b.Render(g, 300, 600, 150, 50, "B987653B")
                     b.GenerateCheckSum = True
@@ -59,7 +59,7 @@ Public Class FrmTest
                     b.Render(g, 300, 800, 150, 50, "D98-$:/.+21D")
                 End With
                 With Nothing
-                    Dim b As New CItf
+                    Dim b As New Itf
                     b.Render(g, 500, 500, 200, 50, "12345678901231")
                     b.Render(g, 500, 600, 200, 50, "14901234567891")
                     b.GenerateCheckSum = True
@@ -70,7 +70,7 @@ Public Class FrmTest
                 e.HasMorePages = True
             Case 2
                 With Nothing
-                    Dim b As New CYubinCustomer
+                    Dim b As New YubinCustomer
                     Const dpi As Integer = 100
                     b.Render(g, 20, 50, 300, 50, 8.0F, dpi, "1234567890-")
                     b.Render(g, 20, 150, 350, 50, 9.0F, dpi, "ABCDEFGHIJKLMNOPQRST")
@@ -78,7 +78,7 @@ Public Class FrmTest
                     b.Render(g, 20, 350, 450, 50, 11.5F, dpi, "024007315-10-3")
                 End With
                 With Nothing
-                    Dim b As New CGs1128
+                    Dim b As New Gs1128
                     Const unit As GraphicsUnit = GraphicsUnit.Display
                     b.Render(g, 450, 50, 300, 50, unit, "{00}123456789012345678")
                     b.Render(g, 450, 150, 300, 50, unit, "{11}ABCDEF{99}!""%&'()*+,-./")

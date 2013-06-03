@@ -1,6 +1,6 @@
 ﻿Imports System.Math
 
-Public Class CBarcode
+Public Class Barcode
 
     Public Shared BarWidth As Single = 1.0F
 

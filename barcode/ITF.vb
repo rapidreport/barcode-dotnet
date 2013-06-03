@@ -1,9 +1,9 @@
 ﻿Imports jp.co.systembase.barcode.content
-Imports jp.co.systembase.barcode.content.CBarContent
-Imports jp.co.systembase.barcode.content.CScale
+Imports jp.co.systembase.barcode.content.BarContent
+Imports jp.co.systembase.barcode.content.Scale
 
-Public Class CItf
-    Inherits CBarcode
+Public Class Itf
+    Inherits Barcode
 
     Private Shared CODE_PATTERNS As New Dictionary(Of Char, Integer()) From _
         {{"0", {0, 0, 1, 1, 0}}, _
@@ -105,20 +105,20 @@ Public Class CItf
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal data As String) As CBarContent
+                                  ByVal data As String) As BarContent
         Return CreateContent(New RectangleF(x, y, w, h), data)
     End Function
 
     Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-                                  ByVal dpi As Integer, ByVal data As String) As CBarContent
+                                  ByVal dpi As Integer, ByVal data As String) As BarContent
         Return CreateContent(New RectangleF(x, y, w, h), dpi, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As CBarContent
+    Public Function CreateContent(ByVal r As RectangleF, ByVal data As String) As BarContent
         Return CreateContent(r, DPI, data)
     End Function
 
-    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As CBarContent
+    Public Function CreateContent(ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String) As BarContent
         Dim shortBarWidth As Single = MmToPixel(dpi, 1.016F)
         Dim longBarWidth As Single = MmToPixel(dpi, 1.016F * 2.5F)
 
@@ -134,7 +134,7 @@ Public Class CItf
             Next
         Next
 
-        Dim scale As CScale = New CPointScale(marginX, marginY, r.Width, r.Height, dpi)
+        Dim scale As Scale = New PointScale(marginX, marginY, r.Width, r.Height, dpi)
         Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
@@ -146,7 +146,7 @@ Public Class CItf
             Return Nothing
         End If
 
-        Dim ret As New CBarContent
+        Dim ret As New BarContent
         Dim xPos As Single = 0
         Dim _scale As Single = w / width
         For Each code As Integer() In codes
@@ -162,7 +162,7 @@ Public Class CItf
                 If i Mod 2 = 0 Then
                     Dim x As Single = r.X + xPos + scale.PixelMarginX
                     Dim y As Single = r.Y + scale.PixelMarginY
-                    Dim b As New CBarContent.CBar(x, y, barWidth, barHeight)
+                    Dim b As New BarContent.CBar(x, y, barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += barWidth
@@ -179,7 +179,7 @@ Public Class CItf
             Dim x As Single = r.X + (w / 2) + scale.PixelMarginX
             Dim y As Single = r.Y + barHeight + scale.PixelMarginY
 
-            Dim t As New CBarContent.CText(_data, f, x, y, format)
+            Dim t As New BarContent.CText(_data, f, x, y, format)
             ret.Add(t)
         End If
 
@@ -203,7 +203,7 @@ Public Class CItf
     End Sub
 
     Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal dpi As Integer, ByVal data As String)
-        Dim c As CBarContent = CreateContent(r, dpi, data)
+        Dim c As BarContent = CreateContent(r, dpi, data)
         c.Draw(g)
     End Sub
 

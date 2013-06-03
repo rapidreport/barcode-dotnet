@@ -1,5 +1,5 @@
-﻿Public Class CEan
-    Inherits CBarcode
+﻿Public Class Ean
+    Inherits Barcode
 
     Protected Shared CODE_PATTERNS(,) As Byte = _
       {{3, 2, 1, 1}, _

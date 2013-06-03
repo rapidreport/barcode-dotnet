@@ -1,9 +1,9 @@
 ﻿Imports jp.co.systembase.barcode.content
-Imports jp.co.systembase.barcode.content.CBarContent
-Imports jp.co.systembase.barcode.content.CScale
+Imports jp.co.systembase.barcode.content.BarContent
+Imports jp.co.systembase.barcode.content.Scale
 
-Public Class CYubinCustomer
-    Inherits CBarcode
+Public Class YubinCustomer
+    Inherits Barcode
 
     Private Shared CODE_CHARS() As String = _
         {"144", _
@@ -146,7 +146,7 @@ Public Class CYubinCustomer
     End Function
 
     Public Function CreateContent(ByVal r As RectangleF, _
-                                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String) As CBarContent
+                                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String) As BarContent
         If point < 8.0F OrElse 11.5F < point Then
             Throw New ArgumentException("illegal point: " & point & ", point is 8.0 to 11.5")
         End If
@@ -157,13 +157,13 @@ Public Class CYubinCustomer
         Dim barWidth As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
         Dim barSpace As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
 
-        Dim scale As CScale = New CPointScale(MarginX, MarginY, r.Width, r.Height, dpi)
+        Dim scale As Scale = New PointScale(MarginX, MarginY, r.Width, r.Height, dpi)
         Dim xPos As Single = r.X
         Dim yTop As Single = r.Y
         Dim xMax As Single = r.X + scale.PixelWidth
         Dim yMax As Single = r.Y + scale.PixelHeight
 
-        Dim ret As New CBarContent
+        Dim ret As New BarContent
         For Each code As String In Encode(data)
             For Each c As Char In code
                 Dim yPos As Single = yTop
@@ -192,7 +192,7 @@ Public Class CYubinCustomer
                     barHeight = yMax - y
                 End If
 
-                Dim b As New CBarContent.CBar(x, y, barWidth, barHeight)
+                Dim b As New BarContent.CBar(x, y, barWidth, barHeight)
                 ret.Add(b)
 
                 xPos = xPos + barWidth + barSpace
@@ -223,7 +223,7 @@ Public Class CYubinCustomer
     Public Sub Render(ByVal g As Graphics, _
                       ByVal r As RectangleF, _
                       ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
-        Dim c As CBarContent = CreateContent(r, point, dpi, data)
+        Dim c As BarContent = CreateContent(r, point, dpi, data)
         c.Draw(g)
     End Sub
 

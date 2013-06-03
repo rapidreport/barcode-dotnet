@@ -71,17 +71,18 @@
     <Import Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="content\CBarContent.vb" />
-    <Compile Include="CBarcode.vb" />
-    <Compile Include="CCodabar.vb" />
-    <Compile Include="CCode128.vb" />
-    <Compile Include="CCode39.vb" />
-    <Compile Include="CEan.vb" />
-    <Compile Include="CEan13.vb" />
-    <Compile Include="CEan8.vb" />
-    <Compile Include="CGs1128.vb" />
-    <Compile Include="CItf.vb" />
-    <Compile Include="CYubinCustomer.vb" />
+    <Compile Include="Barcode.vb" />
+    <Compile Include="Codabar.vb" />
+    <Compile Include="Code128.vb" />
+    <Compile Include="Code39.vb" />
+    <Compile Include="content\BarContent.vb" />
+    <Compile Include="content\PointScale.vb" />
+    <Compile Include="content\Scale.vb" />
+    <Compile Include="Ean.vb" />
+    <Compile Include="Ean13.vb" />
+    <Compile Include="Ean8.vb" />
+    <Compile Include="Gs1128.vb" />
+    <Compile Include="ITF.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -97,8 +98,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="content\CPointScale.vb" />
-    <Compile Include="content\CScale.vb" />
+    <Compile Include="YubinCustomer.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

@@ -1,6 +1,6 @@
 ﻿Namespace content
 
-    Public Class CBarContent
+    Public Class BarContent
 
         Private _bars As New List(Of CBar)
         Private _text As New List(Of CText)
