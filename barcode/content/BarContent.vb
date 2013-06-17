@@ -2,30 +2,30 @@
 
     Public Class BarContent
 
-        Private _bars As New List(Of CBar)
-        Private _text As New List(Of CText)
+        Private _bars As New List(Of Bar)
+        Private _text As New List(Of Text)
 
-        Public Function GetBars() As List(Of CBar)
+        Public Function GetBars() As List(Of Bar)
             Return _bars
         End Function
 
-        Public Function GetText() As List(Of CText)
+        Public Function GetText() As List(Of Text)
             Return _text
         End Function
 
-        Public Sub SetBars(ByVal bars As List(Of CBar))
+        Public Sub SetBars(ByVal bars As List(Of Bar))
             _bars = bars
         End Sub
 
-        Public Sub SetText(ByVal text As List(Of CText))
+        Public Sub SetText(ByVal text As List(Of Text))
             _text = text
         End Sub
 
-        Public Sub Add(ByVal bar As CBar)
+        Public Sub Add(ByVal bar As Bar)
             _bars.Add(bar)
         End Sub
 
-        Public Sub Add(ByVal text As CText)
+        Public Sub Add(ByVal text As Text)
             _text.Add(text)
         End Sub
 
@@ -38,7 +38,7 @@
             If GetBars() Is Nothing OrElse GetBars.Count = 0 Then
                 Exit Sub
             End If
-            For Each b As CBar In GetBars()
+            For Each b As Bar In GetBars()
                 g.FillRectangle(Brushes.Black, b.GetX, b.GetY, b.GetWidth, b.GetHeight)
             Next
         End Sub
@@ -50,12 +50,12 @@
             If GetText() Is Nothing OrElse GetText.Count = 0 Then
                 Exit Sub
             End If
-            For Each t As CText In GetText()
+            For Each t As Text In GetText()
                 g.DrawString(t.GetCode, t.GetFont, Brushes.Black, t.GetX, t.GetY, t.GetFormat)
             Next
         End Sub
 
-        Public Class CBar
+        Public Class Bar
 
             Private _x As Single
             Private _y As Single
@@ -110,7 +110,7 @@
 
         End Class
 
-        Public Class CText
+        Public Class Text
 
             Private _code As String
             Private _font As Font

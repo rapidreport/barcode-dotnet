@@ -192,7 +192,7 @@ Public Class YubinCustomer
                     barHeight = yMax - y
                 End If
 
-                Dim b As New BarContent.CBar(x, y, barWidth, barHeight)
+                Dim b As New BarContent.Bar(x, y, barWidth, barHeight)
                 ret.Add(b)
 
                 xPos = xPos + barWidth + barSpace

@@ -162,7 +162,7 @@ Public Class Itf
                 If i Mod 2 = 0 Then
                     Dim x As Single = r.X + xPos + scale.PixelMarginX
                     Dim y As Single = r.Y + scale.PixelMarginY
-                    Dim b As New BarContent.CBar(x, y, barWidth, barHeight)
+                    Dim b As New BarContent.Bar(x, y, barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += barWidth
@@ -179,7 +179,7 @@ Public Class Itf
             Dim x As Single = r.X + (w / 2) + scale.PixelMarginX
             Dim y As Single = r.Y + barHeight + scale.PixelMarginY
 
-            Dim t As New BarContent.CText(_data, f, x, y, format)
+            Dim t As New BarContent.Text(_data, f, x, y, format)
             ret.Add(t)
         End If
 

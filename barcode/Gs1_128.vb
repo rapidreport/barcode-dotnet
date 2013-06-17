@@ -5,7 +5,7 @@ Imports jp.co.systembase.barcode.content
 Imports jp.co.systembase.barcode.content.BarContent
 Imports jp.co.systembase.barcode.content.Scale
 
-Public Class Gs1128
+Public Class Gs1_128
     Inherits Barcode
 
     Private Shared CODE_PATTERNS(,) As Byte = _
@@ -127,7 +127,7 @@ Public Class Gs1128
 
     Private Const CHARS As String = "!""%&'()*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
 
-    Public ConvenienceFormat As Boolean = False
+    Public ConveniFormat As Boolean = False
 
     Private Shared TYPE_A As New CodeTypeA
     Private Shared TYPE_B As New CodeTypeB
@@ -326,7 +326,7 @@ Public Class Gs1128
         For Each map As CodeMap In codes
             sb.Append("(" & map.GetAi & ")" & map.GetData)
         Next
-        If ConvenienceFormat Then
+        If ConveniFormat Then
             sb.Insert(10, "-")
             sb.Insert(33, " ")
             sb.Insert(40, "-")
@@ -355,7 +355,7 @@ Public Class Gs1128
         Dim codes As List(Of CodeMap) = createCodeMap(data)
         For Each map As CodeMap In codes
             Dim ai_2 As String = map.GetAi.Substring(0, 2)
-            If ConvenienceFormat AndAlso AI_CONVENIENCE <> ai_2 Then
+            If ConveniFormat AndAlso AI_CONVENIENCE <> ai_2 Then
                 Throw New ArgumentException("illegal a: (" & map.GetAi & ")")
             End If
             If FIXED_AI.ContainsKey(ai_2) Then
@@ -451,7 +451,7 @@ Public Class Gs1128
                                   ByVal r As RectangleF, _
                                   ByVal dpi As Integer, ByVal unit As GraphicsUnit, ByVal data As String) As BarContent
         Dim barWidth As Single = MmToPixel(dpi, 0.191F)
-        If ConvenienceFormat Then
+        If ConveniFormat Then
             Select Case dpi
                 Case 300, 600
                     barWidth = MmToPixel(dpi, 0.169F)
@@ -474,7 +474,7 @@ Public Class Gs1128
         Dim h As Single = scale.PixelHeight
         Dim barHeight As Single = h
         If WithText Then
-            If ConvenienceFormat Then
+            If ConveniFormat Then
                 barHeight *= 0.5F
             Else
                 barHeight *= 0.7F
@@ -496,7 +496,7 @@ Public Class Gs1128
                 If i Mod 2 = 0 Then
                     Dim x As Single = r.X + xPos + scale.PixelMarginX
                     Dim y As Single = r.Y + scale.PixelMarginY
-                    Dim b As New BarContent.CBar(x, y, _barWidth, barHeight)
+                    Dim b As New BarContent.Bar(x, y, _barWidth, barHeight)
                     ret.Add(b)
                 End If
                 xPos += _barWidth
@@ -517,7 +517,7 @@ Public Class Gs1128
 
             For i As Integer = 0 To t.Length - 1
                 Dim _y As Single = y + (f.Size * i)
-                Dim _t As New BarContent.CText(t(i), f, x, _y, format)
+                Dim _t As New BarContent.Text(t(i), f, x, _y, format)
                 ret.Add(_t)
             Next
         End If

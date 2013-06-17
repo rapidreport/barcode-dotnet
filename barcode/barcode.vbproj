@@ -81,7 +81,7 @@
     <Compile Include="Ean.vb" />
     <Compile Include="Ean13.vb" />
     <Compile Include="Ean8.vb" />
-    <Compile Include="Gs1128.vb" />
+    <Compile Include="Gs1_128.vb" />
     <Compile Include="ITF.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

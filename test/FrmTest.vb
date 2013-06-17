@@ -78,15 +78,16 @@ Public Class FrmTest
                     b.Render(g, 20, 350, 450, 50, 11.5F, dpi, "024007315-10-3")
                 End With
                 With Nothing
-                    Dim b As New Gs1128
+                    Dim b As New Gs1_128
                     Const unit As GraphicsUnit = GraphicsUnit.Display
                     b.Render(g, 450, 50, 300, 50, unit, "{00}123456789012345678")
                     b.Render(g, 450, 150, 300, 50, unit, "{11}ABCDEF{99}!""%&'()*+,-./")
                     b.WithText = False
                     b.Render(g, 450, 250, 300, 50, unit, "{01}04912345123459{10}ABC123")
                     b.WithText = True
-                    b.ConvenienceFormat = True
-                    b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
+                    b.ConveniFormat = True
+                    'b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
+                    b.Render(g, 450, 350, 300, 50, unit, "{91}1234567890")
                 End With
                 e.HasMorePages = False
             Case Else
