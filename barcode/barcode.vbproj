@@ -82,7 +82,7 @@
     <Compile Include="Ean13.vb" />
     <Compile Include="Ean8.vb" />
     <Compile Include="Gs1_128.vb" />
-    <Compile Include="ITF.vb" />
+    <Compile Include="Itf.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
