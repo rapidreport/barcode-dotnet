@@ -60,9 +60,10 @@ Public Class FrmTest
                 End With
                 With Nothing
                     Dim b As New Itf
-                    b.Render(g, 500, 500, 200, 50, "12345678901231")
-                    b.Render(g, 500, 600, 200, 50, "14901234567891")
+                    b.Render(g, 500, 500, 200, 50, "12345678901234")
                     b.GenerateCheckSum = True
+                    b.Render(g, 500, 600, 200, 50, "432109876543")
+                    b.WithCheckSumText = True
                     b.Render(g, 500, 700, 200, 50, "1234567890123")
                     b.WithText = False
                     b.Render(g, 500, 800, 200, 50, "1234567890123")
@@ -86,8 +87,8 @@ Public Class FrmTest
                     b.Render(g, 450, 250, 300, 50, unit, "{01}04912345123459{10}ABC123")
                     b.WithText = True
                     b.ConveniFormat = True
-                    'b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
-                    b.Render(g, 450, 350, 300, 50, unit, "{91}1234567890")
+                    b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
+                    'b.Render(g, 450, 350, 300, 50, unit, "{91}1234567890")
                 End With
                 e.HasMorePages = False
             Case Else

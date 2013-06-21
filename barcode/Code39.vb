@@ -70,7 +70,7 @@
         Return _Encode(ps)
     End Function
 
-    Protected Function _Encode(ByVal ps As List(Of Integer)) As Byte()
+    Private Function _Encode(ByVal ps As List(Of Integer)) As Byte()
         Dim ret As New List(Of Byte)
         For Each p As Integer In ps
             Me.addCodes(ret, p)
@@ -78,7 +78,7 @@
         Return ret.ToArray
     End Function
 
-    Protected Sub addCodes(ByVal l As List(Of Byte), ByVal p As Integer)
+    Private Sub addCodes(ByVal l As List(Of Byte), ByVal p As Integer)
         If l.Count > 0 Then
             l.Add(0)
         End If
