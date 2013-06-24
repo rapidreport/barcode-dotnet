@@ -72,11 +72,10 @@ Public Class FrmTest
             Case 2
                 With Nothing
                     Dim b As New YubinCustomer
-                    Const dpi As Integer = 100
-                    b.Render(g, 20, 50, 300, 50, 8.0F, dpi, "1234567890-")
-                    b.Render(g, 20, 150, 350, 50, 9.0F, dpi, "ABCDEFGHIJKLMNOPQRST")
-                    b.Render(g, 20, 250, 400, 50, 10.0F, dpi, "UVWXYZ")
-                    b.Render(g, 20, 350, 450, 50, 11.5F, dpi, "024007315-10-3")
+                    b.Render(g, 20, 50, 250, 50, "1234567890-")
+                    b.Render(g, 20, 150, 300, 50, "1112222ABCDEFGHIJK")
+                    b.Render(g, 20, 250, 350, 50, "UVWXYZ")
+                    b.Render(g, 20, 350, 400, 50, "024007315-10-3")
                 End With
                 With Nothing
                     Dim b As New Gs1_128
