@@ -2,7 +2,7 @@
 Imports jp.co.systembase.barcode.content.BarContent
 Imports jp.co.systembase.barcode.content.Scale
 
-Public Class YubinCustomer
+Public Class Yubin
     Inherits Barcode
 
     Private Shared CODE_PATTERNS(,) As Byte = _
@@ -85,10 +85,10 @@ Public Class YubinCustomer
                 Exit For
             End If
             For Each p As Byte In cp
-                sum_p += p
                 ret.Add(CODE_PATTERNS(p, 0))
                 ret.Add(CODE_PATTERNS(p, 1))
                 ret.Add(CODE_PATTERNS(p, 2))
+                sum_p += p
             Next
             l += cp.Length
         Next
@@ -165,102 +165,5 @@ Public Class YubinCustomer
             x += uw * 2
         Next
     End Sub
-
-    'Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-    '                              ByVal point As Single, ByVal data As String)
-    '    Return CreateContent(New RectangleF(x, y, w, h), point, data)
-    'End Function
-
-    'Public Function CreateContent(ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-    '                              ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
-    '    Return CreateContent(New RectangleF(x, y, w, h), point, dpi, data)
-    'End Function
-
-    'Public Function CreateContent(ByVal r As RectangleF, _
-    '                              ByVal point As Single, ByVal data As String)
-    '    Return CreateContent(r, point, DPI, data)
-    'End Function
-
-    'Public Function CreateContent(ByVal r As RectangleF, _
-    '                              ByVal point As Single, ByVal dpi As Integer, ByVal data As String) As BarContent
-    '    If point < 8.0F OrElse 11.5F < point Then
-    '        Throw New ArgumentException("illegal point: " & point & ", point is 8.0 to 11.5")
-    '    End If
-
-    '    Dim longBarHeight As Single = MmToPixel(dpi, 3.6F * point / 10.0F)
-    '    Dim timingBarHeight As Single = MmToPixel(dpi, 1.2F * point / 10.0F)
-    '    Dim semilongBarHeight As Single = longBarHeight / 2.0F + timingBarHeight / 2.0F
-    '    Dim barWidth As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
-    '    Dim barSpace As Single = MmToPixel(dpi, 0.6F * point / 10.0F)
-
-    '    Dim scale As Scale = New PointScale(MarginX, MarginY, r.Width, r.Height, dpi)
-    '    Dim xPos As Single = r.X
-    '    Dim yTop As Single = r.Y
-    '    Dim xMax As Single = r.X + scale.PixelWidth
-    '    Dim yMax As Single = r.Y + scale.PixelHeight
-
-    '    Dim ret As New BarContent
-    '    For Each code As String In Encode(data)
-    '        For Each c As Char In code
-    '            Dim yPos As Single = yTop
-    '            Dim barHeight As Single = 0
-    '            Select Case c
-    '                Case "1"
-    '                    barHeight = longBarHeight
-    '                Case "2"
-    '                    barHeight = semilongBarHeight
-    '                Case "3"
-    '                    yPos = yTop + longBarHeight - semilongBarHeight
-    '                    barHeight = semilongBarHeight
-    '                Case "4"
-    '                    yPos = yTop + longBarHeight - semilongBarHeight
-    '                    barHeight = timingBarHeight
-    '                Case Else
-    '                    Throw New ArgumentException("illegal switch case: " & c)
-    '            End Select
-
-    '            Dim x As Single = xPos + scale.PixelMarginX
-    '            Dim y As Single = yPos + scale.PixelMarginY
-    '            If x > xMax OrElse y > yMax Then
-    '                Exit For
-    '            End If
-    '            If y + barHeight > yMax Then
-    '                barHeight = yMax - y
-    '            End If
-
-    '            Dim b As New BarContent.Bar(x, y, barWidth, barHeight)
-    '            ret.Add(b)
-
-    '            xPos = xPos + barWidth + barSpace
-    '        Next
-    '    Next
-
-    '    Return ret
-    'End Function
-
-    'Public Sub Render(ByVal g As Graphics, _
-    '                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-    '                  ByVal point As Single, ByVal data As String)
-    '    Render(g, New RectangleF(x, y, w, h), point, data)
-    'End Sub
-
-    'Public Sub Render(ByVal g As Graphics, _
-    '                  ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
-    '                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
-    '    Render(g, New RectangleF(x, y, w, h), point, dpi, data)
-    'End Sub
-
-    'Public Sub Render(ByVal g As Graphics, _
-    '                  ByVal r As RectangleF, _
-    '                  ByVal point As Single, ByVal data As String)
-    '    Render(g, r, point, DPI, data)
-    'End Sub
-
-    'Public Sub Render(ByVal g As Graphics, _
-    '                  ByVal r As RectangleF, _
-    '                  ByVal point As Single, ByVal dpi As Integer, ByVal data As String)
-    '    Dim c As BarContent = CreateContent(r, point, dpi, data)
-    '    c.Draw(g)
-    'End Sub
 
 End Class

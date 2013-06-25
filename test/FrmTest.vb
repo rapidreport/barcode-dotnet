@@ -71,7 +71,7 @@ Public Class FrmTest
                 e.HasMorePages = True
             Case 2
                 With Nothing
-                    Dim b As New YubinCustomer
+                    Dim b As New Yubin
                     b.Render(g, 20, 50, 250, 50, "1234567890-")
                     b.Render(g, 20, 150, 300, 50, "1112222ABCDEFGHIJK")
                     b.Render(g, 20, 250, 350, 50, "UVWXYZ")
