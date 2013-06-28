@@ -108,58 +108,48 @@
        {2, 1, 1, 4, 1, 2}, _
        {2, 1, 1, 2, 1, 4}, _
        {2, 1, 1, 2, 3, 2}}
+
     Private Shared STOP_PATTERN() As Byte = {2, 3, 3, 1, 1, 1, 2}
 
     Private Const TO_C As Integer = 99
     Private Const TO_B As Integer = 100
     Private Const TO_A As Integer = 101
+    Private Const FNC_1 As Integer = 102
     Private Const START_A As Integer = 103
     Private Const START_B As Integer = 104
     Private Const START_C As Integer = 105
 
-    Private Enum ECodeType
+    Public Enum ECodeType
         NO_CHANGE
         A
         B
         C
     End Enum
 
-    Public Function Encode(ByVal data As String) As Byte()
-        If data Is Nothing OrElse data.Length = 0 Then
-            Return Nothing
-        End If
-        Me.validation(data)
-        Dim ps As List(Of Integer) = Me.getCodePoints(data)
+    Public ParseFnc1 As Boolean = False
+
+    Public Function Encode(ByVal codePoints As List(Of Integer)) As Byte()
         Dim cs As New List(Of Byte)
-        For Each p As Integer In ps
+        For Each p As Integer In codePoints
             Me.addCodes(cs, p)
         Next
-        addCodes(cs, Me.calcCheckDigit(ps))
+        addCodes(cs, Me.calcCheckDigit(codePoints))
         cs.AddRange(STOP_PATTERN)
         Return cs.ToArray
     End Function
 
-    Private Sub validation(ByVal data As String)
+    Public Sub Validate(ByVal data As String)
         For Each c As Char In data
             If Asc(c) > &H7F Then
-                Throw New ArgumentException("illegal data: " & data)
+                Throw New ArgumentException("(code128)不正なデータです: " & data)
             End If
         Next
     End Sub
 
-    Private Sub addCodes(ByVal l As List(Of Byte), ByVal p As Integer)
-        l.Add(CODE_PATTERNS(p, 0))
-        l.Add(CODE_PATTERNS(p, 1))
-        l.Add(CODE_PATTERNS(p, 2))
-        l.Add(CODE_PATTERNS(p, 3))
-        l.Add(CODE_PATTERNS(p, 4))
-        l.Add(CODE_PATTERNS(p, 5))
-    End Sub
-
-    Private Function getCodePoints(ByVal data As String) As List(Of Integer)
+    Public Function GetCodePoints(ByVal data As String, ByVal startCodeType As ECodeType) As List(Of Integer)
         Dim ret As New List(Of Integer)
         Dim _data As String = data
-        Dim codeType As ECodeType = Me.getStartCodeType(data)
+        Dim codeType As ECodeType = startCodeType
         Select Case codeType
             Case ECodeType.A
                 ret.Add(START_A)
@@ -169,31 +159,45 @@
                 ret.Add(START_C)
         End Select
         Do While (_data.Length > 0)
-            Select Case Me.getNextCodeType(_data, codeType)
-                Case ECodeType.A
-                    ret.Add(TO_A)
-                    codeType = ECodeType.A
-                Case ECodeType.B
-                    ret.Add(TO_B)
-                    codeType = ECodeType.B
-                Case ECodeType.C
-                    ret.Add(TO_C)
-                    codeType = ECodeType.C
-            End Select
-            Select Case codeType
-                Case ECodeType.A
-                    ret.Add(Me.getCodePointA(_data))
-                    _data = _data.Substring(1)
-                Case ECodeType.B
-                    ret.Add(Me.getCodePointB(_data))
-                    _data = _data.Substring(1)
-                Case ECodeType.C
-                    ret.Add(Me.getCodePointC(_data))
-                    _data = _data.Substring(2)
-            End Select
+            If Me.ParseFnc1 AndAlso _data.StartsWith("{1}") Then
+                ret.Add(FNC_1)
+                _data = _data.Substring(3)
+            Else
+                Select Case Me.getNextCodeType(_data, codeType)
+                    Case ECodeType.A
+                        ret.Add(TO_A)
+                        codeType = ECodeType.A
+                    Case ECodeType.B
+                        ret.Add(TO_B)
+                        codeType = ECodeType.B
+                    Case ECodeType.C
+                        ret.Add(TO_C)
+                        codeType = ECodeType.C
+                End Select
+                Select Case codeType
+                    Case ECodeType.A
+                        ret.Add(Me.getCodePointA(_data))
+                        _data = _data.Substring(1)
+                    Case ECodeType.B
+                        ret.Add(Me.getCodePointB(_data))
+                        _data = _data.Substring(1)
+                    Case ECodeType.C
+                        ret.Add(Me.getCodePointC(_data))
+                        _data = _data.Substring(2)
+                End Select
+            End If
         Loop
         Return ret
     End Function
+
+    Private Sub addCodes(ByVal l As List(Of Byte), ByVal p As Integer)
+        l.Add(CODE_PATTERNS(p, 0))
+        l.Add(CODE_PATTERNS(p, 1))
+        l.Add(CODE_PATTERNS(p, 2))
+        l.Add(CODE_PATTERNS(p, 3))
+        l.Add(CODE_PATTERNS(p, 4))
+        l.Add(CODE_PATTERNS(p, 5))
+    End Sub
 
     Private Function getStartCodeType(ByVal data As String) As ECodeType
         If data.Length >= 2 Then
@@ -264,7 +268,7 @@
         Me.Render(g, New RectangleF(x, y, w, h), data)
     End Sub
 
-    Public Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal data As String)
+    Public Overridable Sub Render(ByVal g As Graphics, ByVal r As RectangleF, ByVal data As String)
         If data Is Nothing OrElse data.Length = 0 Then
             Exit Sub
         End If
@@ -277,37 +281,40 @@
         If w <= 0 Or h <= 0 Then
             Exit Sub
         End If
-        With Nothing
-            Me.validation(data)
-            Dim ps As List(Of Integer) = Me.getCodePoints(data)
-            Dim cs As New List(Of Byte)
-            For Each p As Integer In ps
-                addCodes(cs, p)
-            Next
-            addCodes(cs, Me.calcCheckDigit(ps))
-            cs.AddRange(STOP_PATTERN)
-            Dim mw As Single = w / ((ps.Count + 1) * 11 + 13)
-            Dim draw As Boolean = True
-            Dim x As Single = MarginX
-            For Each c As Byte In cs
-                Dim dw As Single = c * mw
-                If draw Then
-                    g.FillRectangle(Brushes.Black, _
-                                    New RectangleF(r.X + x, r.Y + MarginY, dw * BarWidth, _h))
-                End If
-                draw = Not draw
-                x += dw
-            Next
-        End With
+        Me.Validate(data)
+        Me.renderBars( _
+            g, _
+            Me.GetCodePoints(data, Me.getStartCodeType(data)), _
+            r.X + Me.MarginX, _
+            r.Y + Me.MarginY, _
+            w, _
+            _h)
         If Me.WithText Then
-            Dim fs As Single = h * 0.2F
-            fs = Math.Min(fs, ((w * 0.9F) / data.Length) * 2.0F)
-            fs = Math.Max(fs, 6.0F)
-            Dim f As New Font("Arial", fs)
+            Dim f As Font = Me.GetFont(data, w, h)
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             g.DrawString(data, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + _h + MarginY, format)
         End If
+    End Sub
+
+    Protected Sub renderBars( _
+      ByVal g As Graphics, _
+      ByVal codePoints As List(Of Integer), _
+      ByVal x As Single, _
+      ByVal y As Single, _
+      ByVal w As Single, _
+      ByVal h As Single)
+        Dim mw As Single = w / ((codePoints.Count + 1) * 11 + 13)
+        Dim draw As Boolean = True
+        Dim _x As Single = 0
+        For Each c As Byte In Me.Encode(codePoints)
+            Dim dw As Single = c * mw
+            If draw Then
+                g.FillRectangle(Brushes.Black, New RectangleF(x + _x, y, dw * BarWidth, h))
+            End If
+            draw = Not draw
+            _x += dw
+        Next
     End Sub
 
 End Class

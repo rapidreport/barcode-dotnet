@@ -1,8 +1,4 @@
-﻿Imports jp.co.systembase.barcode.content
-Imports jp.co.systembase.barcode.content.BarContent
-Imports jp.co.systembase.barcode.content.Scale
-
-Public Class Yubin
+﻿Public Class Yubin
     Inherits Barcode
 
     Private Shared CODE_PATTERNS(,) As Byte = _
@@ -112,7 +108,7 @@ Public Class Yubin
     Private Sub validate(ByVal data As String)
         For Each c As Char In data
             If Not CODE_POINTS.ContainsKey(c) Then
-                Throw New ArgumentException("illegal char: " & c & " of data: " & data)
+                Throw New ArgumentException("(yubin)不正なデータです: " & data)
             End If
         Next
     End Sub
@@ -161,7 +157,7 @@ Public Class Yubin
                     by = y - uw
                     bh = uw * 2
             End Select
-            g.FillRectangle(Brushes.Black, New RectangleF(x, by, uw, bh))
+            g.FillRectangle(Brushes.Black, New RectangleF(x, by, uw * BarWidth, bh))
             x += uw * 2
         Next
     End Sub

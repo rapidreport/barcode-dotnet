@@ -16,21 +16,7 @@
     Private Shared GUARDS() As Integer = {0, 2, 28, 30, 56, 58}
     Private Shared CHARPOS() As Single = {4, 14, 21, 28, 35, 42, 49, 61, 68, 75, 81, 88, 95}
 
-    Public Function Encode(ByVal data As String) As Byte()
-        If data Is Nothing OrElse data.Length = 0 Then
-            Return Nothing
-        End If
-        Dim _data As List(Of Byte) = pack(data)
-        If _data.Count = 12 Then
-            _data.Add(Me.calcCheckDigit(_data))
-        End If
-        If _data.Count <> 13 Then
-            Throw New ArgumentException("illegal data: " & data)
-        End If
-        Return _Encode(_data)
-    End Function
-
-    Private Function _Encode(ByVal data As List(Of Byte)) As Byte()
+    Public Function Encode(ByVal data As List(Of Byte)) As Byte()
         Dim cs As New List(Of Byte)
         cs.AddRange(START_PATTERN)
         For i As Integer = 1 To 6
@@ -48,6 +34,17 @@
         Return cs.ToArray
     End Function
 
+    Public Function PreprocessData(ByVal data As String) As List(Of Byte)
+        Dim ret As List(Of Byte) = pack(data)
+        If ret.Count = 12 Then
+            ret.Add(Me.calcCheckDigit(ret))
+        End If
+        If ret.Count <> 13 Then
+            Throw New ArgumentException("(ean13)データは12桁(チェックディジットを含めるなら13桁)でなければいけません: " & data)
+        End If
+        Return ret
+    End Function
+
     Public Sub Render(ByVal g As Graphics, _
                   ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
                   ByVal data As String)
@@ -60,54 +57,45 @@
         End If
         Dim w As Single = r.Width - Me.MarginX * 2
         Dim h As Single = r.Height - Me.MarginY * 2
-        Dim _h As Single = h
-        Dim fs As Single = 0.0F
+        Dim _h1 As Single = h
+        Dim _h2 As Single = h
         If Me.WithText Then
-            _h *= 0.7F
-            fs = h * 0.2F
-            fs = Math.Min(fs, ((w * 0.9F) / data.Length) * 2.0F)
-            fs = Math.Max(fs, 6.0F)
+            _h1 *= 0.7F
+            _h2 *= 0.8F
         End If
         If w <= 0 Or h <= 0 Then
             Exit Sub
         End If
-        Dim _data As List(Of Byte) = pack(data)
-        If _data.Count = 12 Then
-            _data.Add(Me.calcCheckDigit(_data))
-        End If
-        If _data.Count <> 13 Then
-            Throw New ArgumentException("illegal data: " & data)
-        End If
-        Dim cs() As Byte = _Encode(_data)
+        Dim _data As List(Of Byte) = PreprocessData(data)
+        Dim cs() As Byte = Encode(_data)
         Dim mw As Single
         Dim x As Single
         If Me.WithText Then
             mw = w / (12 * 7 + 18)
-            x = MarginX + mw * 7
+            x = Me.MarginX + mw * 7
         Else
             mw = w / (12 * 7 + 11)
-            x = MarginX
+            x = Me.MarginX
         End If
         Dim draw As Boolean = True
         For i As Integer = 0 To cs.Length - 1
             Dim dw As Single = cs(i) * mw
             If draw Then
-                Dim __h As Single = _h
+                Dim __h As Single = _h1
                 If Array.IndexOf(GUARDS, i) >= 0 Then
-                    __h += fs / 2
+                    __h = _h2
                 End If
-                g.FillRectangle(Brushes.Black, _
-                                New RectangleF(r.X + x, r.Y + MarginY, dw * BarWidth, __h))
+                g.FillRectangle(Brushes.Black, New RectangleF(r.X + x, r.Y + MarginY, dw * BarWidth, __h))
             End If
             draw = Not draw
             x += dw
         Next
         If Me.WithText Then
-            Dim f As New Font("Arial", fs)
+            Dim f As Font = Me.GetFont("0000000000000", w, h)
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             For i As Integer = 0 To 12
-                g.DrawString(_data(i), f, Brushes.Black, r.X + CHARPOS(i) * mw + MarginX, r.Y + _h + MarginY, format)
+                g.DrawString(_data(i), f, Brushes.Black, r.X + CHARPOS(i) * mw + MarginX, r.Y + _h1 + MarginY, format)
             Next
         End If
     End Sub

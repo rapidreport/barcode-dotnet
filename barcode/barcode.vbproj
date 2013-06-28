@@ -75,9 +75,6 @@
     <Compile Include="Codabar.vb" />
     <Compile Include="Code128.vb" />
     <Compile Include="Code39.vb" />
-    <Compile Include="content\BarContent.vb" />
-    <Compile Include="content\PointScale.vb" />
-    <Compile Include="content\Scale.vb" />
     <Compile Include="Ean.vb" />
     <Compile Include="Ean13.vb" />
     <Compile Include="Ean8.vb" />

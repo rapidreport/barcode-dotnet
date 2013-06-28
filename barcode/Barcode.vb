@@ -16,8 +16,12 @@ Public Class Barcode
         Return fs
     End Function
 
-    Public Function CenterAlign(ByVal font As Font, ByVal g As Graphics, ByVal width As Single, _
-                                ByVal data As String, ByVal unit As GraphicsUnit)
+    Public Function CenterAlign( _
+      ByVal font As Font, _
+      ByVal g As Graphics, _
+      ByVal width As Single, _
+      ByVal data As String, _
+      ByVal unit As GraphicsUnit)
         Dim _unit As GraphicsUnit = g.PageUnit
         g.PageUnit = unit
         Dim sf As New StringFormat
@@ -30,6 +34,13 @@ Public Class Barcode
         x /= 2
         Const margin As Single = 3.0F
         Return x + margin
+    End Function
+
+    Public Function GetFont(ByVal txt As String, ByVal w As Single, ByVal h As Single) As Font
+        Dim fs As Single = h * 0.2F
+        fs = Math.Min(fs, ((w * 0.9F) / txt.Length) * 2.0F)
+        fs = Math.Max(fs, 6.0F)
+        Return New Font("Arial", fs)
     End Function
 
 End Class

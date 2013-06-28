@@ -17,10 +17,6 @@
     Protected Shared STOP_PATTERN() As Byte = {1, 1, 1}
     Protected Shared CENTER_PATTERN() As Byte = {1, 1, 1, 1, 1}
 
-    Protected Function calcCheckDigit(ByVal data As String) As Byte
-        Return Me.calcCheckDigit(pack(data))
-    End Function
-
     Protected Function calcCheckDigit(ByVal data As List(Of Byte)) As Byte
         Dim s As Integer = 0
         For i As Integer = 0 To data.Count - 1
@@ -34,13 +30,10 @@
     End Function
 
     Protected Function pack(ByVal data As String) As List(Of Byte)
-        If data Is Nothing Then
-            Throw New ArgumentException("illegal data")
-        End If
         Dim ret As New List(Of Byte)
         For Each c As Char In data
             If Not Char.IsDigit(c) Then
-                Throw New ArgumentException("illegal data: " & data)
+                Throw New ArgumentException("(ean)不正なデータです: " & data)
             End If
             ret.Add(Byte.Parse(c))
         Next

@@ -79,14 +79,13 @@ Public Class FrmTest
                 End With
                 With Nothing
                     Dim b As New Gs1_128
-                    Const unit As GraphicsUnit = GraphicsUnit.Display
-                    b.Render(g, 450, 50, 300, 50, unit, "{00}123456789012345678")
-                    b.Render(g, 450, 150, 300, 50, unit, "{11}ABCDEF{99}!""%&'()*+,-./")
+                    b.Render(g, 450, 50, 300, 50, "(00)123456789012345678")
+                    b.Render(g, 450, 150, 300, 50, "(11)ABCDEF{99}!""%&'()*+,-./")
                     b.WithText = False
-                    b.Render(g, 450, 250, 300, 50, unit, "{01}04912345123459{10}ABC123")
+                    b.Render(g, 450, 250, 300, 50, "(01)04912345123459{10}ABC123")
                     b.WithText = True
                     b.ConveniFormat = True
-                    b.Render(g, 450, 350, 300, 50, unit, "{91}123456789012345678901234567890123456789012")
+                    b.Render(g, 450, 350, 300, 50, "(91)91234512345678901234567892110203310123456")
                     'b.Render(g, 450, 350, 300, 50, unit, "{91}1234567890")
                 End With
                 e.HasMorePages = False

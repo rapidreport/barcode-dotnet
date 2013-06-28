@@ -30,29 +30,60 @@
     Public WithCheckSumText As Boolean = False
     Public WithStartStopText As Boolean = False
 
-    Public Function Encode(ByVal data As String) As Byte()
-        If data Is Nothing OrElse data.Length = 0 Then
-            Return Nothing
-        End If
-        Dim ps As List(Of Integer) = Me.getCodePoints(data)
-        Dim _ps As List(Of Integer)
-        If GenerateCheckSum Then
-            _ps = New List(Of Integer)
-            _ps.AddRange(ps.GetRange(0, ps.Count - 1))
-            _ps.Add(Me.calcCheckDigit(ps))
-            _ps.Add(ps(ps.Count - 1))
-        Else
-            _ps = ps
-        End If
-        Return _Encode(_ps)
-    End Function
-
-    Private Function _Encode(ByVal ps As List(Of Integer)) As Byte()
+    Public Function Encode(ByVal codePoints As List(Of Integer)) As Byte()
         Dim ret As New List(Of Byte)
-        For Each p As Integer In ps
+        For Each p As Integer In codePoints
             Me.addCodes(ret, p)
         Next
         Return ret.ToArray
+    End Function
+
+    Public Function GetCodePoints(ByVal data As String) As List(Of Integer)
+        Dim ret As New List(Of Integer)
+        For i As Integer = 0 To data.Length - 1
+            Dim p As Integer = CHARS.IndexOf(Char.ToUpper(data(i)))
+            If p >= 0 Then
+                If i = 0 Or i = data.Length - 1 Then
+                    If p < START_STOP_POINT Then
+                        Throw New ArgumentException("(codabar)スタート/ストップ文字が含まれていません: " & data)
+                    End If
+                Else
+                    If p >= START_STOP_POINT Then
+                        Throw New ArgumentException("(codabar)不正なデータです: " & data)
+                    End If
+                End If
+                ret.Add(p)
+            Else
+                Throw New ArgumentException("(codabar)不正なデータです: " & data)
+            End If
+        Next
+        If ret.Count < 2 Then
+            Throw New ArgumentException("(codabar)不正なデータです: " & data)
+        End If
+        Return ret
+    End Function
+
+    Public Function CalcCheckDigit(ByVal ps As List(Of Integer)) As Integer
+        Dim s As Integer = 0
+        For Each p As Integer In ps
+            s += p
+        Next
+        Return (16 - (s Mod 16)) Mod 16
+    End Function
+
+    Public Sub AddCheckDigit(ByVal codePoints As List(Of Integer), ByVal cd As Integer)
+        codePoints.Insert(codePoints.Count - 1, cd)
+    End Sub
+
+    Public Function AddCheckDigit(ByVal txt As String, ByVal cd As Integer) As String
+        Dim ret As String = txt.Substring(0, txt.Length - 1)
+        ret &= CHARS(cd)
+        ret &= txt(txt.Length - 1)
+        Return ret
+    End Function
+
+    Public Function TrimStartStopText(ByVal txt As String) As String
+        Return txt.Substring(1, txt.Length - 2)
     End Function
 
     Private Sub addCodes(ByVal l As List(Of Byte), ByVal p As Integer)
@@ -67,39 +98,6 @@
         l.Add(CODE_PATTERNS(p, 5))
         l.Add(CODE_PATTERNS(p, 6))
     End Sub
-
-    Private Function getCodePoints(ByVal data As String) As List(Of Integer)
-        Dim ret As New List(Of Integer)
-        For i As Integer = 0 To data.Length - 1
-            Dim p As Integer = CHARS.IndexOf(Char.ToUpper(data(i)))
-            If p >= 0 Then
-                If i = 0 Or i = data.Length - 1 Then
-                    If p < START_STOP_POINT Then
-                        Throw New ArgumentException("illegal data: " & data)
-                    End If
-                Else
-                    If p >= START_STOP_POINT Then
-                        Throw New ArgumentException("illegal data: " & data)
-                    End If
-                End If
-                ret.Add(p)
-            Else
-                Throw New ArgumentException("illegal data: " & data)
-            End If
-        Next
-        If ret.Count < 2 Then
-            Throw New ArgumentException("illegal data: " & data)
-        End If
-        Return ret
-    End Function
-
-    Private Function calcCheckDigit(ByVal ps As List(Of Integer)) As Integer
-        Dim s As Integer = 0
-        For Each p As Integer In ps
-            s += p
-        Next
-        Return (16 - (s Mod 16)) Mod 16
-    End Function
 
     Public Sub Render(ByVal g As Graphics, _
                   ByVal x As Single, ByVal y As Single, ByVal w As Single, ByVal h As Single, _
@@ -120,27 +118,19 @@
         If w <= 0 Or h <= 0 Then
             Exit Sub
         End If
-        Dim ps As List(Of Integer) = Me.getCodePoints(data)
-        Dim _ps As List(Of Integer)
-        Dim _data As String = data
-        If GenerateCheckSum Then
-            Dim cd As Integer = Me.calcCheckDigit(ps)
-            _ps = New List(Of Integer)
-            _ps.AddRange(ps.GetRange(0, ps.Count - 1))
-            _ps.Add(cd)
-            _ps.Add(ps(ps.Count - 1))
-            If WithCheckSumText Then
-                _data = data.Substring(0, data.Length - 1)
-                _data &= CHARS(cd)
-                _data &= data(data.Length - 1)
+        Dim ps As List(Of Integer) = Me.GetCodePoints(data)
+        Dim txt As String = data
+        If Me.GenerateCheckSum Then
+            Dim cd As Integer = Me.CalcCheckDigit(ps)
+            Me.AddCheckDigit(ps, cd)
+            If Me.WithCheckSumText Then
+                txt = Me.AddCheckDigit(txt, cd)
             End If
-        Else
-            _ps = ps
         End If
         If Not Me.WithStartStopText Then
-            _data = _data.Substring(1, _data.Length - 2)
+            txt = Me.TrimStartStopText(txt)
         End If
-        Dim cs As Byte() = Me._Encode(_ps)
+        Dim cs As Byte() = Me.Encode(ps)
         Dim mw As Single
         With Nothing
             Dim l As Integer = 0
@@ -154,20 +144,16 @@
         For i As Integer = 0 To cs.Length - 1
             Dim dw As Single = (cs(i) + 1) * mw
             If draw Then
-                g.FillRectangle(Brushes.Black, _
-                                New RectangleF(r.X + x, r.Y + MarginY, dw * BarWidth, _h))
+                g.FillRectangle(Brushes.Black, New RectangleF(r.X + x, r.Y + MarginY, dw * BarWidth, _h))
             End If
             draw = Not draw
             x += dw
         Next
         If Me.WithText Then
-            Dim fs As Single = h * 0.2F
-            fs = Math.Min(fs, ((w * 0.9F) / _data.Length) * 2.0F)
-            fs = Math.Max(fs, 6.0F)
-            Dim f As New Font("Arial", fs)
+            Dim f As Font = GetFont(txt, w, h)
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
-            g.DrawString(_data, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + _h + MarginY, format)
+            g.DrawString(txt, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + _h + MarginY, format)
         End If
     End Sub
 
