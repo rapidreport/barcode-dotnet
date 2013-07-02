@@ -21,7 +21,7 @@
     Public Function PreprocessData(ByVal data As String) As List(Of Byte)
         Dim ret As List(Of Byte) = pack(data)
         If ret.Count = 7 Then
-            ret.Add(Me.calcCheckDigit(ret))
+            ret.Add(Me.CalcCheckDigit(ret))
         End If
         If ret.Count <> 8 Then
             Throw New ArgumentException("(ean13)データは7桁(チェックディジットを含めるなら8桁)でなければいけません: " & data)

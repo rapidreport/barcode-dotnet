@@ -37,7 +37,7 @@
     Public Function PreprocessData(ByVal data As String) As List(Of Byte)
         Dim ret As List(Of Byte) = pack(data)
         If ret.Count = 12 Then
-            ret.Add(Me.calcCheckDigit(ret))
+            ret.Add(Me.CalcCheckDigit(ret))
         End If
         If ret.Count <> 13 Then
             Throw New ArgumentException("(ean13)データは12桁(チェックディジットを含めるなら13桁)でなければいけません: " & data)
@@ -66,8 +66,8 @@
         If w <= 0 Or h <= 0 Then
             Exit Sub
         End If
-        Dim _data As List(Of Byte) = PreprocessData(data)
-        Dim cs() As Byte = Encode(_data)
+        Dim _data As List(Of Byte) = Me.PreprocessData(data)
+        Dim cs() As Byte = Me.Encode(_data)
         Dim mw As Single
         Dim x As Single
         If Me.WithText Then

@@ -17,7 +17,7 @@
     Protected Shared STOP_PATTERN() As Byte = {1, 1, 1}
     Protected Shared CENTER_PATTERN() As Byte = {1, 1, 1, 1, 1}
 
-    Protected Function calcCheckDigit(ByVal data As List(Of Byte)) As Byte
+    Public Function CalcCheckDigit(ByVal data As List(Of Byte)) As Byte
         Dim s As Integer = 0
         For i As Integer = 0 To data.Count - 1
             If i Mod 2 = 0 Then
