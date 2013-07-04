@@ -91,7 +91,7 @@
             x += dw
         Next
         If Me.WithText Then
-            Dim f As Font = Me.GetFont("0000000000000", w, h)
+            Dim f As Font = Me.GetFont(GetFontSize(g, "0000000000000", w, h))
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             For i As Integer = 0 To 12

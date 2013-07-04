@@ -44,14 +44,14 @@ Public Class Gs1_128
                 Dim t As String = Me.ConveniDisplayFormat(_data)
                 Dim t1 As String = t.Substring(0, 33)
                 Dim t2 As String = t.Substring(33)
-                Dim f As Font = Me.GetFont(t1, w, h)
+                Dim f As Font = Me.GetFont(GetFontSize(g, t1, w, h))
                 Dim format As StringFormat = New StringFormat()
                 format.Alignment = StringAlignment.Near
-                g.DrawString(t1, f, Brushes.Black, r.X + Me.MarginX, r.Y + _h + Me.MarginY, format)
+                g.DrawString(t1, f, Brushes.Black, r.X + Me.MarginX, r.Y + _h + Me.MarginY - f.Size * 0.1, format)
                 g.DrawString(t2, f, Brushes.Black, r.X + Me.MarginX, r.Y + _h + Me.MarginY + f.Size, format)
             Else
                 Dim t As String = Me.DisplayFormat(_data)
-                Dim f As Font = Me.GetFont(t, w, h)
+                Dim f As Font = Me.GetFont(GetFontSize(g, t, w, h))
                 Dim format As StringFormat = New StringFormat()
                 format.Alignment = StringAlignment.Center
                 g.DrawString(t, f, Brushes.Black, r.X + w / 2 + Me.MarginX, r.Y + _h + Me.MarginY, format)

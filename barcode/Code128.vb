@@ -290,7 +290,7 @@
             w, _
             _h)
         If Me.WithText Then
-            Dim f As Font = Me.GetFont(data, w, h)
+            Dim f As Font = Me.GetFont(GetFontSize(g, data, w, h))
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             g.DrawString(data, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + _h + MarginY, format)

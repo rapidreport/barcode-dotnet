@@ -153,7 +153,7 @@
             x += dw
         Next
         If Me.WithText Then
-            Dim f As Font = Me.GetFont(txt, w, h)
+            Dim f As Font = Me.GetFont(GetFontSize(g, txt, w, h))
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             g.DrawString(txt, f, Brushes.Black, r.X + w / 2 + MarginX, r.Y + _h + MarginY, format)

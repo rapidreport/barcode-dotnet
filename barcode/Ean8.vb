@@ -68,7 +68,7 @@
             x += dw
         Next
         If Me.WithText Then
-            Dim f As Font = Me.GetFont("00000000", h, w)
+            Dim f As Font = Me.GetFont(GetFontSize(g, "00000000", h, w))
             Dim format As StringFormat = New StringFormat()
             format.Alignment = StringAlignment.Center
             For i As Integer = 0 To 7
