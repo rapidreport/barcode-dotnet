@@ -146,6 +146,10 @@
         Next
     End Sub
 
+    Public Function GetCodePoints(ByVal data As String) As List(Of Integer)
+        Return Me.GetCodePoints(data, Me.GetStartCodeType(data))
+    End Function
+
     Public Function GetCodePoints(ByVal data As String, ByVal startCodeType As ECodeType) As List(Of Integer)
         Dim ret As New List(Of Integer)
         Dim _data As String = data
@@ -199,7 +203,7 @@
         l.Add(CODE_PATTERNS(p, 5))
     End Sub
 
-    Private Function getStartCodeType(ByVal data As String) As ECodeType
+    Public Function GetStartCodeType(ByVal data As String) As ECodeType
         If data.Length >= 2 Then
             If Char.IsDigit(data(0)) And Char.IsDigit(data(1)) Then
                 Return ECodeType.C
@@ -284,7 +288,7 @@
         Me.Validate(data)
         Me.renderBars( _
             g, _
-            Me.GetCodePoints(data, Me.getStartCodeType(data)), _
+            Me.GetCodePoints(data), _
             r.X + Me.MarginX, _
             r.Y + Me.MarginY, _
             w, _
