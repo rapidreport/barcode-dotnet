@@ -72,10 +72,11 @@ Public Class FrmTest
             Case 2
                 With Nothing
                     Dim b As New Yubin
-                    b.Render(g, 20, 50, 250, 50, "1234567890-")
+                    b.Render(g, 20, 50, 300, 50, "1234567890-")
                     b.Render(g, 20, 150, 300, 50, "1112222ABCDEFGHIJK")
-                    b.Render(g, 20, 250, 350, 50, "UVWXYZ")
-                    b.Render(g, 20, 350, 400, 50, "024007315-10-3")
+                    b.Render(g, 20, 250, 300, 50, "UVWXYZ")
+                    b.Render(g, 20, 350, 300, 50, "024007315-10-3")
+                    b.Render(g, 20, 450, 300, 50, "91000673-80-25J1-2B")
                 End With
                 With Nothing
                     Dim b As New Gs1_128

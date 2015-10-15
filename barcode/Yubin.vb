@@ -77,16 +77,19 @@
         ret.AddRange(START_PATTERN)
         For Each c As Char In data
             Dim cp As Byte() = CODE_POINTS(c)
-            If l + cp.Length > MAX_SIZE Then
-                Exit For
-            End If
             For Each p As Byte In cp
                 ret.Add(CODE_PATTERNS(p, 0))
                 ret.Add(CODE_PATTERNS(p, 1))
                 ret.Add(CODE_PATTERNS(p, 2))
                 sum_p += p
+                l += 1
+                If l = MAX_SIZE Then
+                    Exit For
+                End If
             Next
-            l += cp.Length
+            If l = MAX_SIZE Then
+                Exit For
+            End If
         Next
         Do While l < MAX_SIZE
             ret.Add(CODE_PATTERNS(14, 0)) ' CC4
