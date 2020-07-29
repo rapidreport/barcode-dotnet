@@ -1,5 +1,6 @@
 # /
 /*.suo
+/.vs
 
 # /barcode/
 /barcode/bin
